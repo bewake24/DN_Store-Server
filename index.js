@@ -2,12 +2,13 @@ require('dotenv').config()
 const express = require("express");
 const cors = require('cors')
 const path = require("path")
-const {logger} = require('./middleware/logEvents')
-const errorHandler = require('./middleware/errorHandler')
+const {logger} = require('./middleware/logEvents.middleware')
+// const errorHandler = require('./middleware/errorHandler')
 const corsOptions = require('./config/corsOptions');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
 const connectDB = require('./config/dbConn');
+const restrictDirectoryAccess = require('./middleware/uploads.middleware');
 const PORT = process.env.PORT || 3000
 
 const app = express();
@@ -20,20 +21,25 @@ app.use(logger);
 //Cross Origin Resource Sharing
 app.use(cors(corsOptions));
 
-app.use(express.urlencoded({extended: true, limit: '16kb'})) //Etended true vs false
+app.use(express.urlencoded({extended: true, limit: process.env.REQ_LIMIT}))
 
 //built in middleware for json
-app.use(express.json({limit: '16kb'}));
+app.use(express.json({limit: process.env.REQ_LIMIT}));
 
 //middleware for cookies
 app.use(cookieParser());
 
+// Middleware to restrict access to the directory itself
+app.use('/api/v1/uploads', restrictDirectoryAccess)
+
 //serve static files
-app.use(express.static(path.join(__dirname, '/public')));
+app.use('/api/v1', express.static(path.join(__dirname, '/public')));
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 
 //routes
-app.use('/', require('./routes/root'))
+app.use('/api/v1', require('./routes/root'))
+app.use('/api/v1/user', require('./routes/user.route'))
 
 app.all("*", (req, res) => {
     // res.redirect("/404.html")
@@ -47,7 +53,7 @@ app.all("*", (req, res) => {
     }
   });
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
 mongoose.connection.once('open', ()=>{
   app.on('error', (error) => {
