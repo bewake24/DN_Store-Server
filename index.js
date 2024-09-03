@@ -24,7 +24,7 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({extended: true, limit: process.env.REQ_LIMIT}))
 
 //built in middleware for json
-app.use(express.json({limit: process.env.REQ_LIMIT}));
+app.use(express.json());
 
 //middleware for cookies
 app.use(cookieParser());

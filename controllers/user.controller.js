@@ -1,8 +1,23 @@
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
-const validator = require("../utils/validator");
+const { validateEmail, validateUsername, validateGender, validatePhoneNo, validatename, validatePasword } = require("../utils/validator");
 const User = require("../model/user.model");
+
+const generateAccessAndRefreshToken = async(userId) => {
+
+  try {
+    const user = await User.findById(userId)
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({validateBeforeSave: false}); //didn't run validation to save the user here it will not ask for password.
+    return { accessToken, refreshToken }
+    
+  } catch (error) {
+    throw new ApiError(500, 'Error while generating access and refresh token')
+  }
+}
 
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
@@ -20,12 +35,12 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   //2. Validate pattern of necessary fields;
-  if (username) username = validator.validateUsername(username);
-  if (password) password = validator.validatePasword(password);
-  if (name) name = validator.validatename(name);
-  if (email) email = validator.validateEmail(email);
-  if (phoneNo) phoneNo = validator.validatePhoneNo(phoneNo);
-  if (gender) gender = validator.validateGender(gender);
+  if (username) username = validateUsername(username);
+  if (password) password = validatePasword(password);
+  if (name) name = validatename(name);
+  if (email) email = validateEmail(email);
+  if (phoneNo) phoneNo = validatePhoneNo(phoneNo);
+  if (gender) gender = validateGender(gender);
 
   const invalidFields = [username, password, name, phoneNo, email, gender]
     .filter((index) => index.isValid === false)
@@ -65,7 +80,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email: email.value,
     phoneNo: phoneNo.value,
     gender: gender.value,
-    avatar: userAvatar
+    avatar: userAvatar,
   });
 
   // Check if user created in database of not & remove password and refresh token from response
@@ -88,11 +103,58 @@ const loginUser = asyncHandler(async (req, res) => {
   // Get data from frontend
   const { usernameOrEmail, password } = req.body;
 
-  if (validator.validateEmail(usernameOrEmail)) {
-  }
+  let email;
+  let username;
+
   // Validate data;
-  // match credentials
-  // send responese back
+  if (validateEmail(usernameOrEmail).isValid)
+    email = validateEmail(usernameOrEmail).value;
+  if (validateUsername(usernameOrEmail).isValid)
+    username = validateUsername(usernameOrEmail).value;
+
+  if (!email && !username) {
+    throw new ApiError(400, "Valid username or email is required");
+  }
+
+  // Find user
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  }).exec()
+
+  // Match User
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  const isPasswordValid = user.isPasswordCorrect(password)
+  if(!isPasswordValid){
+    throw new ApiError(401, "Password didn't matched")
+  }
+
+  
+  // Send responese back
+  const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+  const options = {
+    httpOnly: true,
+    secure: true
+}
+console.log(loggedInUser.name)
+
+return res
+.status(200)
+.cookie("accessToken", accessToken, options)
+.cookie("refreshToken", refreshToken, options)
+.json(
+    new ApiResponse(
+        200, 
+        {
+            user: loggedInUser, accessToken, refreshToken
+        },
+        "User logged In Successfully"
+    ))
+
+
 });
 
-module.exports = { registerUser };
+module.exports = { registerUser, loginUser };
