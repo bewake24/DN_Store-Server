@@ -27,13 +27,10 @@ const registerUser = asyncHandler(async (req, res) => {
   if (phoneNo) phoneNo = validator.validatePhoneNo(phoneNo);
   if (gender) gender = validator.validateGender(gender);
 
-  console.log([username, password, name, email, gender]);
-
-  const invalidFields = [username, password, name, email, gender]
-    .map((index) => {
-      if (index?.isValid === false) return index.type;
-    })
-    .filter((index) => index !== undefined).join(', ');
+  const invalidFields = [username, password, name, phoneNo, email, gender]
+    .filter((index) => index.isValid === false)
+    .map((index) => index.type)
+    .join(", ");
 
   if (invalidFields) {
     throw new ApiError(
@@ -44,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // check if user already exist
   const dublicate = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username: username.value }, { email: email.value }],
   }).exec();
   if (dublicate) {
     throw new ApiError(409, "Username already exists");
@@ -52,41 +49,50 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // check for avatar and upload to file server
   let userAvatar;
-
   if (
     req.files &&
     Array.isArray(req.files.avatar) &&
     req.files.avatar.length > 0
   ) {
-    userAvatar = req.files.avatar[0].path.split(`${username}/`)[1];
+    userAvatar = req.files.avatar[0].path.split(`${username.value}/`)[1];
   }
 
   // create user object & entry in DB
   const user = await User.create({
-    name,
-    username,
-    password,
-    email,
-    phoneNo,
-    gender,
-    avatar: userAvatar,
+    name: name.value,
+    username: username.value,
+    password: password.value,
+    email: email.value,
+    phoneNo: phoneNo.value,
+    gender: gender.value,
+    avatar: userAvatar
   });
 
   // Check if user created in database of not & remove password and refresh token from response
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken -addresses"
   );
 
   if (!createdUser) {
     throw new ApiError(500, "Error while registering the user.");
   }
 
-  // check for user creation
-  console.log("user added");
   // send response back
+  console.log("User added successfully");
   res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+  // Get data from frontend
+  const { usernameOrEmail, password } = req.body;
+
+  if (validator.validateEmail(usernameOrEmail)) {
+  }
+  // Validate data;
+  // match credentials
+  // send responese back
 });
 
 module.exports = { registerUser };

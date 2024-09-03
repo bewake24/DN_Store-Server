@@ -1,26 +1,44 @@
-const path = require('path')
-const fs = require('fs')
-const multer = require('multer')
-const { v4: uuidv4 } = require('uuid')
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
+const { validateUsername } = require("../utils/validator");
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const username = req.body.username;
-        const uploadFilePath = path.join(__dirname, "..", "public", "uploads", username)
+  destination: function (req, file, cb) {
+    console.log(req.body.username);
+    const username = validateUsername(req.body.username);
+    console.log(username);
 
-        //Check if Filepath exists or not
-        if(!fs.existsSync(uploadFilePath)){
-            fs.mkdirSync(uploadFilePath, {recursive: true})
-        }
-
-      cb(null, uploadFilePath)
-    },
-    filename: function (req, file, cb) {
-        const uniqueName = uuidv4() + path.extname(file.originalname);
-      cb(null, file.fieldname + '-' + uniqueName)
+    if (!username.isValid) {
+      // Tell the multer to skip uploading the file
+      return cb(
+        new Error("Invalid username provided, skipping the file upload"),
+        false
+      );
     }
-  })
-  
-  const upload = multer({ storage });
+    console.log(username.value);
+    const uploadFilePath = path.join(
+      __dirname,
+      "..",
+      "public",
+      "uploads",
+      username.value
+    );
 
-  module.exports = upload
+    //Check if Filepath exists or not
+    if (!fs.existsSync(uploadFilePath)) {
+      fs.mkdirSync(uploadFilePath, { recursive: true });
+    }
+
+    cb(null, uploadFilePath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = uuidv4() + path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueName);
+  },
+});
+
+const upload = multer({ storage });
+
+module.exports = upload;
