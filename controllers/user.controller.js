@@ -1,23 +1,28 @@
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
-const { validateEmail, validateUsername, validateGender, validatePhoneNo, validatename, validatePasword } = require("../utils/validator");
+const {
+  validateEmail,
+  validateUsername,
+  validateGender,
+  validatePhoneNo,
+  validatename,
+  validatePasword,
+} = require("../utils/validator");
 const User = require("../model/user.model");
 
-const generateAccessAndRefreshToken = async(userId) => {
-
+const generateAccessAndRefreshToken = async (userId) => {
   try {
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
-    await user.save({validateBeforeSave: false}); //didn't run validation to save the user here it will not ask for password.
-    return { accessToken, refreshToken }
-    
+    await user.save({ validateBeforeSave: false }); //didn't run validation to save the user here it will not ask for password.
+    return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, 'Error while generating access and refresh token')
+    throw new ApiError(500, "Error while generating access and refresh token");
   }
-}
+};
 
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
@@ -119,42 +124,78 @@ const loginUser = asyncHandler(async (req, res) => {
   // Find user
   const user = await User.findOne({
     $or: [{ username }, { email }],
-  }).exec()
+  }).exec();
 
   // Match User
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
 
-  const isPasswordValid = user.isPasswordCorrect(password)
-  if(!isPasswordValid){
-    throw new ApiError(401, "Password didn't matched")
+  const isPasswordValid = user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Password didn't matched");
   }
 
-  
   // Send responese back
-  const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
-  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
   const options = {
     httpOnly: true,
-    secure: true
-}
-console.log(loggedInUser.name)
+    secure: true,
+  };
+  console.log(loggedInUser.name + " Loggedin Successefully");
 
-return res
-.status(200)
-.cookie("accessToken", accessToken, options)
-.cookie("refreshToken", refreshToken, options)
-.json(
-    new ApiResponse(
-        200, 
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
         {
-            user: loggedInUser, accessToken, refreshToken
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
         },
         "User logged In Successfully"
-    ))
-
-
+      )
+    );
 });
 
-module.exports = { registerUser, loginUser };
+const logout = asyncHandler(async (req, res) => {
+  // console.log(req.user);
+  // Remove remove user credentials from Db
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: 1, // remove the field from DB completely
+      },
+    },
+    {
+      new: true, // Returns the updated value in response
+    }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  //Send response back
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
+});
+
+const refreshAccessToken = asyncHandler(async (req, res)=> {
+
+})
+
+module.exports = { registerUser, loginUser, logout, refreshAccessToken };
