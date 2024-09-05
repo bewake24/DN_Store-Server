@@ -8,20 +8,19 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const username = validateUsername(req.body.username);
 
-    if (!username.isValid) {
+    if (!username) {
       // Tell the multer to skip uploading the file
       return cb(
         new Error("Invalid username provided, skipping the file upload"),
         false
       );
     }
-    console.log(username.value);
     const uploadFilePath = path.join(
       __dirname,
       "..",
       "public",
       "uploads",
-      username.value
+      username
     );
 
     //Check if Filepath exists or not

@@ -39,32 +39,26 @@ const registerUser = asyncHandler(async (req, res) => {
   if (isEmpty) {
     throw new ApiError(400, "All Fields are required");
   }
+  let invalidFields = [];
 
   //2. Validate pattern of necessary fields;
-  if (name) name = validateName(name);
-  if (email) email = validateEmail(email);
-  if (gender) gender = validateGender(gender);
-  if (phoneNo) phoneNo = validatePhoneNo(phoneNo);
-  if (password) password = validatePasword(password);
-  if (username) username = validateUsername(username);
+  name = validateName(name) || invalidFields.push("name");
+  email = validateEmail(email) || invalidFields.push("email");
+  gender = validateGender(gender) || invalidFields.push("gender");
+  phoneNo = validatePhoneNo(phoneNo) || invalidFields.push("phoneNo");
+  password = validatePasword(password) || invalidFields.push("password");
+  username = validateUsername(username) || invalidFields.push("username");
 
-  console.log([username, password, name, phoneNo, email, gender]);
-
-  const invalidFields = [username, password, name, phoneNo, email, gender]
-    .filter((index) => index.isValid === false)
-    .map((index) => index.type)
-    .join(", ");
-
-  if (invalidFields) {
+  if (invalidFields.length) {
     throw new ApiError(
       400,
-      `Please enter the proper format!! Invalid field(s): ${invalidFields}`
+      `Please enter the proper format!! Invalid field(s): ${invalidFields.join(", ")}`
     );
   }
 
   // check if user already exist
   const dublicate = await User.findOne({
-    $or: [{ username: username.value }, { email: email.value }],
+    $or: [{ username }, { email }],
   }).exec();
   if (dublicate) {
     throw new ApiError(409, "Username already exists");
@@ -77,17 +71,17 @@ const registerUser = asyncHandler(async (req, res) => {
     Array.isArray(req.files.avatar) &&
     req.files.avatar.length > 0
   ) {
-    userAvatar = req.files.avatar[0].path.split(`${username.value}/`)[1];
+    userAvatar = req.files.avatar[0].path.split(`${username}/`)[1];
   }
 
   // create user object & entry in DB
   const user = await User.create({
-    name: name.value,
-    username: username.value,
-    password: password.value,
-    email: email.value,
-    phoneNo: phoneNo.value,
-    gender: gender.value,
+    name,
+    username,
+    password,
+    email,
+    phoneNo,
+    gender,
     avatar: userAvatar,
   });
 
@@ -115,10 +109,9 @@ const loginUser = asyncHandler(async (req, res) => {
   let username;
 
   // Validate data;
-  if (validateEmail(usernameOrEmail).isValid)
-    email = validateEmail(usernameOrEmail).value;
-  if (validateUsername(usernameOrEmail).isValid)
-    username = validateUsername(usernameOrEmail).value;
+  if (validateEmail(usernameOrEmail)) email = validateEmail(usernameOrEmail);
+  if (validateUsername(usernameOrEmail))
+    username = validateUsername(usernameOrEmail);
 
   if (!email && !username) {
     throw new ApiError(400, "Valid username or email is required");
@@ -252,30 +245,32 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const updateUserInfo = asyncHandler(async (req, res) => {
   console.log(req.user.name);
   let updates = req.body;
-
-  let name, email, gender, phoneNo;
   const allowedUpdates = ["name", "email", "gender", "phoneNo"];
   let fieldsToUpdate = {};
 
-  Object.keys(updates).forEach(key => {
+  Object.keys(updates).forEach((key) => {
     if (allowedUpdates.includes(key)) {
-        fieldsToUpdate[key] = updates[key];
+      fieldsToUpdate[key] = updates[key];
     }
-});
+  });
 
   //Validate Incoming Updates
-  if (updates.name) fieldsToUpdate.name = validateName(fieldsToUpdate.name).value || false;
-  if (updates.email) fieldsToUpdate.email = validateEmail(fieldsToUpdate.email).value || false;
-  if (updates.gender) fieldsToUpdate.gender = validateGender(fieldsToUpdate.gender).value || false;
-  if (updates.phoneNo) fieldsToUpdate.phoneNo = validatePhoneNo(fieldsToUpdate.phoneNo).value || false;
-
+  if (updates.name)
+    fieldsToUpdate.name = validateName(fieldsToUpdate.name) || false;
+  if (updates.email)
+    fieldsToUpdate.email = validateEmail(fieldsToUpdate.email) || false;
+  if (updates.gender)
+    fieldsToUpdate.gender =
+      validateGender(fieldsToUpdate.gender) || false;
+  if (updates.phoneNo)
+    fieldsToUpdate.phoneNo =
+      validatePhoneNo(fieldsToUpdate.phoneNo) || false;
 
   //Find All Invalid Fields
-  const invalidFields = Object.keys(fieldsToUpdate).filter(key => 
-    fieldsToUpdate[key] === false 
-  ).join(', ');
-console.log(fieldsToUpdate)
-
+  const invalidFields = Object.keys(fieldsToUpdate)
+    .filter((key) => fieldsToUpdate[key] === false)
+    .join(", ");
+  console.log(fieldsToUpdate);
 
   if (invalidFields) {
     throw new ApiError(
@@ -291,7 +286,7 @@ console.log(fieldsToUpdate)
     },
     {
       new: true,
-      runValidators: true // Run validation on update
+      runValidators: true, // Run validation on update
     }
   );
 

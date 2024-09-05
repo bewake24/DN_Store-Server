@@ -11,13 +11,13 @@ class validator {
     // return false if input doesn't satisfy
     if (!pattern.test(email)) {
       response.isValid = false;
-      return response;
+      return false;
     }
     response.isValid = true;
     response.value = email;
 
     // return the valid input
-    return response;
+    return email;
   }
 
   static validatePasword(input) {
@@ -27,12 +27,12 @@ class validator {
     const password = input.trim();
     if (!pattern.test(password)) {
       response.isValid = false;
-      return response;
+      return false;
     }
 
     response.isValid = true;
     response.value = password;
-    return response;
+    return password;
   }
 
   static validateName(input) {
@@ -45,12 +45,12 @@ class validator {
       .join(" ");
     if (!pattern.test(name)) {
       response.isValid = false;
-      return response;
+      return false;
     }
 
     response.isValid = true;
     response.value = name;
-    return response;
+    return name;
   }
 
   static validateUsername(input) {
@@ -60,11 +60,11 @@ class validator {
 
     if (!pattern.test(username)) {
       response.isValid = false;
-      return response;
+      return false;
     }
     response.isValid = true;
     response.value = username;
-    return response;
+    return username;
   }
 
   static validatePhoneNo(input) {
@@ -73,11 +73,11 @@ class validator {
     const phoneNo = input.trim();
     if (!pattern.test(phoneNo)) {
       response.isValid = false;
-      return response;
+      return false;
     }
     response.isValid = true;
     response.value = phoneNo;
-    return response;
+    return phoneNo;
   }
 
   static validateGender(input) {
@@ -85,17 +85,23 @@ class validator {
     if (input === MALE || input === FEMALE || input === OTHERS) {
       response.isValid = true;
       response.value = input;
-      return response;
+      return input;
     }
     response.isValid = false;
 
-    return response;
+    return false;
   }
 }
 
 module.exports = validator;
 
-// return properties to each method
-//  1.) type
-//  2.) isValid
-//  3.) value
+
+// Initial Approach
+//  return properties to each method
+//    1.) type
+//    2.) isValid
+//    3.) value
+
+// Current Approach
+//   Return false if input doesnt satisfy regesx
+//   Return value if input satisfies regesx
