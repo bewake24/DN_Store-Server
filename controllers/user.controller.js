@@ -1,13 +1,13 @@
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
 const {
   validateEmail,
   validateUsername,
   validateGender,
   validatePhoneNo,
-  validatename,
+  validateName,
   validatePasword,
 } = require("../utils/validator");
 const User = require("../model/user.model");
@@ -28,7 +28,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   let { username, password, name, email, phoneNo, gender } = req.body;
-
+  console.log(req.body);
   // validation of data
 
   // 1. Check for empty input fields
@@ -41,12 +41,14 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   //2. Validate pattern of necessary fields;
-  if (username) username = validateUsername(username);
-  if (password) password = validatePasword(password);
-  if (name) name = validatename(name);
+  if (name) name = validateName(name);
   if (email) email = validateEmail(email);
-  if (phoneNo) phoneNo = validatePhoneNo(phoneNo);
   if (gender) gender = validateGender(gender);
+  if (phoneNo) phoneNo = validatePhoneNo(phoneNo);
+  if (password) password = validatePasword(password);
+  if (username) username = validateUsername(username);
+
+  console.log([username, password, name, phoneNo, email, gender]);
 
   const invalidFields = [username, password, name, phoneNo, email, gender]
     .filter((index) => index.isValid === false)
@@ -195,45 +197,113 @@ const logout = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-const refreshAccessToken = asyncHandler(async (req, res)=> {
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;  // req.body.refreshToken -> If user is sending data from moblie application
-  if(!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorised Request")
-  };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken; // req.body.refreshToken -> If user is sending data from moblie application
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Unauthorised Request");
+  }
 
   try {
-    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
 
-    const user = await User.findById(decodedToken?._id)
+    const user = await User.findById(decodedToken?._id);
 
-    if(!user){
-      throw new ApiError(401, "Invalid Refresh token")
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh token");
     }
 
-    if(incomingRefreshToken !== user?.refreshToken){
-      throw new ApiError(401, "Token expired or used")
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Token expired or used");
     }
 
-    const {accessToken, newRefreshToken} = await generateAccessAndRefreshToken(user._id);
+    const { accessToken, newRefreshToken } =
+      await generateAccessAndRefreshToken(user._id);
 
     const options = {
       httpOnly: true,
-      secure: true
-    }
-    
-    console.log('New Tokens Generated Successfully')
+      secure: true,
+    };
 
-    res.status(200)
+    console.log("New Tokens Generated Successfully");
+
+    res
+      .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)
-      .json(new ApiResponse(200,{
-        accessToken,
-        refreshToken: newRefreshToken
-      }, "New Tokens generated succesfully"))
-    
+      .json(
+        new ApiResponse(
+          200,
+          {
+            accessToken,
+            refreshToken: newRefreshToken,
+          },
+          "New Tokens generated succesfully"
+        )
+      );
   } catch (error) {
-    throw new ApiError(401, "Invalid refresh token")
+    throw new ApiError(401, "Invalid refresh token");
   }
-})
+});
 
-module.exports = { registerUser, loginUser, logout, refreshAccessToken };
+const updateUserInfo = asyncHandler(async (req, res) => {
+  console.log(req.user.name);
+  let updates = req.body;
+
+  let name, email, gender, phoneNo;
+  const allowedUpdates = ["name", "email", "gender", "phoneNo"];
+  let fieldsToUpdate = {};
+
+  Object.keys(updates).forEach(key => {
+    if (allowedUpdates.includes(key)) {
+        fieldsToUpdate[key] = updates[key];
+    }
+});
+
+  //Validate Incoming Updates
+  if (updates.name) fieldsToUpdate.name = validateName(fieldsToUpdate.name).value || false;
+  if (updates.email) fieldsToUpdate.email = validateEmail(fieldsToUpdate.email).value || false;
+  if (updates.gender) fieldsToUpdate.gender = validateGender(fieldsToUpdate.gender).value || false;
+  if (updates.phoneNo) fieldsToUpdate.phoneNo = validatePhoneNo(fieldsToUpdate.phoneNo).value || false;
+
+
+  //Find All Invalid Fields
+  const invalidFields = Object.keys(fieldsToUpdate).filter(key => 
+    fieldsToUpdate[key] === false 
+  ).join(', ');
+console.log(fieldsToUpdate)
+
+
+  if (invalidFields) {
+    throw new ApiError(
+      400,
+      `Invalid data provided for fields: ${invalidFields}`
+    );
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: fieldsToUpdate,
+    },
+    {
+      new: true,
+      runValidators: true // Run validation on update
+    }
+  );
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "User updated successfully"));
+});
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logout,
+  refreshAccessToken,
+  updateUserInfo,
+};

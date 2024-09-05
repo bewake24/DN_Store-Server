@@ -21,6 +21,7 @@ app.use(logger);
 //Cross Origin Resource Sharing
 app.use(cors(corsOptions));
 
+// Middleware to parse x-www-form-urlencoded data
 app.use(express.urlencoded({extended: true, limit: process.env.REQ_LIMIT}))
 
 //built in middleware for json

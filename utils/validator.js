@@ -35,7 +35,7 @@ class validator {
     return response;
   }
 
-  static validatename(input) {
+  static validateName(input) {
     const response = { type: "name" };
     const pattern = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
     const name = input
