@@ -2,13 +2,15 @@ const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
 const {
   validateEmail,
   validateUsername,
   validateGender,
   validatePhoneNo,
   validateName,
-  validatePasword,
+  validatePassword,
 } = require("../utils/validator");
 const User = require("../model/user.model");
 
@@ -28,7 +30,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   let { username, password, name, email, phoneNo, gender } = req.body;
-  console.log(req.body);
   // validation of data
 
   // 1. Check for empty input fields
@@ -46,13 +47,15 @@ const registerUser = asyncHandler(async (req, res) => {
   email = validateEmail(email) || invalidFields.push("email");
   gender = validateGender(gender) || invalidFields.push("gender");
   phoneNo = validatePhoneNo(phoneNo) || invalidFields.push("phoneNo");
-  password = validatePasword(password) || invalidFields.push("password");
+  password = validatePassword(password) || invalidFields.push("password");
   username = validateUsername(username) || invalidFields.push("username");
 
   if (invalidFields.length) {
     throw new ApiError(
       400,
-      `Please enter the proper format!! Invalid field(s): ${invalidFields.join(", ")}`
+      `Please enter the proper format!! Invalid field(s): ${invalidFields.join(
+        ", "
+      )}`
     );
   }
 
@@ -67,11 +70,9 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for avatar and upload to file server
   let userAvatar;
   if (
-    req.files &&
-    Array.isArray(req.files.avatar) &&
-    req.files.avatar.length > 0
+    req.file
   ) {
-    userAvatar = req.files.avatar[0].path.split(`${username}/`)[1];
+    userAvatar = req.file?.filename;
   }
 
   // create user object & entry in DB
@@ -243,7 +244,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const updateUserInfo = asyncHandler(async (req, res) => {
-  console.log(req.user.name);
   let updates = req.body;
   const allowedUpdates = ["name", "email", "gender", "phoneNo"];
   let fieldsToUpdate = {};
@@ -260,17 +260,14 @@ const updateUserInfo = asyncHandler(async (req, res) => {
   if (updates.email)
     fieldsToUpdate.email = validateEmail(fieldsToUpdate.email) || false;
   if (updates.gender)
-    fieldsToUpdate.gender =
-      validateGender(fieldsToUpdate.gender) || false;
+    fieldsToUpdate.gender = validateGender(fieldsToUpdate.gender) || false;
   if (updates.phoneNo)
-    fieldsToUpdate.phoneNo =
-      validatePhoneNo(fieldsToUpdate.phoneNo) || false;
+    fieldsToUpdate.phoneNo = validatePhoneNo(fieldsToUpdate.phoneNo) || false;
 
   //Find All Invalid Fields
   const invalidFields = Object.keys(fieldsToUpdate)
     .filter((key) => fieldsToUpdate[key] === false)
     .join(", ");
-  console.log(fieldsToUpdate);
 
   if (invalidFields) {
     throw new ApiError(
@@ -289,10 +286,49 @@ const updateUserInfo = asyncHandler(async (req, res) => {
       runValidators: true, // Run validation on update
     }
   );
-
+  console.log("User updated successfully")
   res
     .status(200)
     .json(new ApiResponse(200, updatedUser, "User updated successfully"));
+});
+
+const updateAvatar = asyncHandler(async (req, res) => {
+  // Get user from cookies
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not loggedin or found");
+  }
+
+  if (!req.file) {
+    throw new ApiError(400, "No file uploaded");
+  }
+
+  //Find old avatar from DB
+  const oldAvatarPath = path.join(
+    __dirname,
+    "..",
+    "public",
+    "uploads",
+    user.username,
+    user.avatar
+  );
+
+  // Save new Avatar to DB
+  user.avatar = req.file?.filename;
+  await user.save();
+
+  // Delete old avatar from server
+  if (fs.existsSync(oldAvatarPath)) {
+    fs.unlink(oldAvatarPath, (err) => {
+      if (err) {
+        throw new ApiError(500, "Failed to delete old avatar");
+      }
+    });
+  }
+  console.log("User avatar updated successfully")
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "User avatar updated successfully"));
 });
 
 module.exports = {
@@ -301,4 +337,7 @@ module.exports = {
   logout,
   refreshAccessToken,
   updateUserInfo,
+  updateAvatar,
 };
+
+// When writing controller to update username also write logic to remane directory where the user data is stored.

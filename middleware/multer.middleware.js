@@ -6,7 +6,7 @@ const { validateUsername } = require("../utils/validator");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const username = validateUsername(req.body.username);
+    const username = req.user?.username || validateUsername(req.body.username);
 
     if (!username) {
       // Tell the multer to skip uploading the file
