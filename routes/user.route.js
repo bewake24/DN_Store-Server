@@ -6,7 +6,12 @@ const {
   updateUserInfo,
   updateAvatar,
 } = require("../controllers/user.controller");
-const { addAnAddress, getUserAddresses } = require("../controllers/address.controller");
+const {
+  addAnAddress,
+  getUserAddresses,
+  updateAnAddress,
+  deleteAnAddress
+} = require("../controllers/address.controller");
 const upload = require("../middleware/multer.middleware");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
 
@@ -25,9 +30,12 @@ router
   .route("/update-avatar")
   .post(verifyJWT, upload.single("avatar"), updateAvatar);
 
-
 // Address Routes by User
-router.route('/add-an-address').post(verifyJWT, addAnAddress)
-router.route('/get-user-addresses').get(verifyJWT, getUserAddresses)
+router.route("/add-an-address").post(verifyJWT, addAnAddress);
+router.route("/get-user-addresses").get(verifyJWT, getUserAddresses);
+router
+  .route("/address/:id")
+  .put(verifyJWT, updateAnAddress)
+  .delete(verifyJWT, deleteAnAddress);
 
 module.exports = router;
