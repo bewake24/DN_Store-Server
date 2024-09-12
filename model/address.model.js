@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
 const { WORK, HOME, ADDRESS } = require("../constants/models.constants");
 
-const addressSchema = new mongoose.schema(
+const addressSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -13,7 +18,7 @@ const addressSchema = new mongoose.schema(
     },
     alternatePhoneNo: {
       type: String,
-      required: true,
+      // required: true,
     },
     pinCode: {
       type: String,
@@ -21,7 +26,7 @@ const addressSchema = new mongoose.schema(
     },
     locality: {
       type: String,
-      required: true,
+      // required: true,
     },
     address: {
       type: String,
@@ -32,12 +37,12 @@ const addressSchema = new mongoose.schema(
       required: true,
     },
     addressState: {
-      type: Sring, //Enum
+      type: String, //Enum
       required: true,
     },
     landmark: {
       type: String,
-      required: true,
+      // required: true,
     },
     addressType: {
       type: String,

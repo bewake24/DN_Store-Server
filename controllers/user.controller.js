@@ -286,7 +286,7 @@ const updateUserInfo = asyncHandler(async (req, res) => {
       runValidators: true, // Run validation on update
     }
   );
-  console.log("User updated successfully")
+  console.log("User updated successfully");
   res
     .status(200)
     .json(new ApiResponse(200, updatedUser, "User updated successfully"));

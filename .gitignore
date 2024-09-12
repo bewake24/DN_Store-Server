@@ -130,4 +130,5 @@ dist
 .pnp.*
 
 
+#Mac Miscelanious file
 **/.DS_Store
