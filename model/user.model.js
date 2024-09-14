@@ -45,11 +45,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: [MALE, FEMALE, OTHERS],
     },
-    // roles: {
-    //   type: [String],
-    //   enum: [MANAGER, EDITOR, ADMIN, CUSTOMER, OWNER],
-    //   default: CUSTOMER,
-    // },
     roles: {
       CUSTOMER: {
         type: Number,
@@ -60,13 +55,6 @@ const userSchema = new mongoose.Schema(
       ADMIN: Number,
       OWNER: Number,
     },
-    // addresses: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: ADDRESS,
-    //     //references to address schema
-    //   },
-    // ],
     status: {
       type: String,
       enum: [ACTIVE, INACTIVE, UNDER_REVIEW, BLOCKED],

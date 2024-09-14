@@ -4,17 +4,12 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 
 const addAnAddress = asyncHandler(async (req, res) => {
-
-  // While adding an address
-  // 1. Check if user already have an addresses.
-  // 2. If no address exits, make incoming address as default.
-  // 3. If user already have some default address, and wants incoming address as default address
-  // 3.1. Set isDefault to false for default address and set it to true for incoming address
-
-  console.log("username: ", req.user.username);
-  console.log(req.body);
   // Get address etails from frontend
   let userId = req.user._id;
+  if (!userId) {
+    throw new ApiError(401, "Unauthorised User");
+  }
+
   //Get address etails from frontend
   let {
     name,
@@ -31,39 +26,25 @@ const addAnAddress = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Check for empty required fields
-  const isEmpty = [
-    name,
-    phoneNo,
-    pinCode,
-    // locality,
-    // address,
-    // city,
-    // state,
-    // country,
-  ].some((fields) => fields === undefined || fields.trim() === "");
+  const isEmpty = [name, phoneNo, pinCode, address, city, addressState].some(
+    (fields) => fields === undefined || fields.trim() === ""
+  );
 
   if (isEmpty) {
     throw new ApiError(400, "Please input the required fields");
   }
 
-  // Check for invalid fields
-  //   let invalidFields = [];
-  //   name = validateName(name) || invalidFields.push("name");
-  //   phoneNo = validatePhoneNo(phoneNo) || invalidFields.push("phoneNo");
-  //   alternatePhoneNo =
-  //     validatePhoneNo(alternatePhoneNo) || invalidFields.push("alternatePhoneNo");
-  //   pinCode = validatePinCode(pinCode) || invalidFields.push("pinCode");
+  const defaultAddress = await Address.findOne({ userId, isDefault: true });
+  if (isDefault && defaultAddress) {
+    defaultAddress.isDefault = false;
+    await defaultAddress.save();
+  }
 
-  //   if (invalidFields.length) {
-  //     throw new ApiError(
-  //       400,
-  //       `Please enter the proper format!! Invalid field(s): ${invalidFields.join(
-  //         ", "
-  //       )}`
-  //     );
-  //   }
+  if (!defaultAddress) isDefault = true;
+  console.log(defaultAddress);
 
   const newAddress = await Address.create({
+    userId,
     name,
     phoneNo,
     alternatePhoneNo,
@@ -77,7 +58,7 @@ const addAnAddress = asyncHandler(async (req, res) => {
     isDefault,
   });
 
-  console.log(`Address updated successfully to the user ${userId}`);
+  console.log(`Address added successfully to the user ${userId}`);
 
   res
     .status(200)
@@ -105,10 +86,6 @@ const getUserAddresses = asyncHandler(async (req, res) => {
 
 const updateAnAddress = asyncHandler(async (req, res) => {
   const addressId = req.params.id;
-  // Check if incoming address belongs to loggedin user.
-  // 1.) Find userId of the incoming address from params
-  // 2.) Match this userId with userId of loggedin user
-  // 3.) If not match then throw error saying Address doesn't belongs to this user and hence can't update the address
 
   const addressUser = await Address.findById(addressId).select("userId");
   if (addressUser.userId.toString() !== req.user._id.toString()) {
@@ -116,6 +93,19 @@ const updateAnAddress = asyncHandler(async (req, res) => {
       403,
       "Address doesn't belongs to this user and hence can't update the address"
     );
+  }
+  console.log(req.body);
+
+  if (req.body?.isDefault) {
+    const defaultAddress = await Address.findOne({
+      userId: req.user._id,
+      isDefault: true,
+    });
+    if (defaultAddress) {
+      defaultAddress.isDefault = false;
+      await defaultAddress.save();
+      console.log(defaultAddress);
+    }
   }
 
   console.log(req.params);
