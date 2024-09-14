@@ -4,6 +4,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 
 const addAnAddress = asyncHandler(async (req, res) => {
+  console.log(req.body)
   // Get address etails from frontend
   let userId = req.user._id;
   if (!userId) {
@@ -94,7 +95,6 @@ const updateAnAddress = asyncHandler(async (req, res) => {
       "Address doesn't belongs to this user and hence can't update the address"
     );
   }
-  console.log(req.body);
 
   if (req.body?.isDefault) {
     const defaultAddress = await Address.findOne({
@@ -104,11 +104,8 @@ const updateAnAddress = asyncHandler(async (req, res) => {
     if (defaultAddress) {
       defaultAddress.isDefault = false;
       await defaultAddress.save();
-      console.log(defaultAddress);
     }
   }
-
-  console.log(req.params);
   const address = await Address.findByIdAndUpdate(addressId, req.body, {
     new: true,
   });

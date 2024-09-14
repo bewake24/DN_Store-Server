@@ -1,4 +1,4 @@
-const { MALE, FEMALE, OTHERS } = require("../constants/models.constants");
+const { MALE, FEMALE, OTHERS } = require("../../constants/models.constants");
 
 class validator {
   static validateEmail(emailAddress) {
@@ -35,9 +35,9 @@ class validator {
     return phonePattern.test(trimmedPhoneNumber) ? trimmedPhoneNumber : false;
   }
 
-  static validateGender(gender) {
-    const validGenders = [MALE, FEMALE, OTHERS];
-    return validGenders.includes(gender) ? gender : false;
+  static validateGender(genderValue) {
+    const validGenderValues = [MALE, FEMALE, OTHERS];
+    return validGenderValues.includes(genderValue) ? genderValue : false;
   }
 }
 

@@ -4,14 +4,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
-const {
-  validateEmail,
-  validateUsername,
-  validateGender,
-  validatePhoneNo,
-  validateName,
-  validatePassword,
-} = require("../utils/validator");
+const { validateEmail, validateUsername } = require("../utils/inputValidation/validators");
 const User = require("../model/user.model");
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -29,35 +22,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
-  let { username, password, name, email, phoneNo, gender } = req.body;
-  // validation of data
-
-  // 1. Check for empty input fields
-  const isEmpty = [username, password, name, email, phoneNo].some(
-    (fields) => fields === undefined || fields.trim() === ""
-  );
-
-  if (isEmpty) {
-    throw new ApiError(400, "All Fields are required");
-  }
-  let invalidFields = [];
-
-  //2. Validate pattern of necessary fields;
-  name = validateName(name) || invalidFields.push("name");
-  email = validateEmail(email) || invalidFields.push("email");
-  gender = validateGender(gender) || invalidFields.push("gender");
-  phoneNo = validatePhoneNo(phoneNo) || invalidFields.push("phoneNo");
-  password = validatePassword(password) || invalidFields.push("password");
-  username = validateUsername(username) || invalidFields.push("username");
-
-  if (invalidFields.length) {
-    throw new ApiError(
-      400,
-      `Please enter the proper format!! Invalid field(s): ${invalidFields.join(
-        ", "
-      )}`
-    );
-  }
+  let { username, password, name, email, phoneNo, gender } = req.validFields;
 
   // check if user already exist
   const dublicate = await User.findOne({
@@ -69,9 +34,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // check for avatar and upload to file server
   let userAvatar;
-  if (
-    req.file
-  ) {
+  if (req.file) {
     userAvatar = req.file?.filename;
   }
 
@@ -244,7 +207,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const updateUserInfo = asyncHandler(async (req, res) => {
-  let updates = req.body;
+  let updates = req.validFields;
   const allowedUpdates = ["name", "email", "gender", "phoneNo"];
   let fieldsToUpdate = {};
 
@@ -254,27 +217,7 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     }
   });
 
-  //Validate Incoming Updates
-  if (updates.name)
-    fieldsToUpdate.name = validateName(fieldsToUpdate.name) || false;
-  if (updates.email)
-    fieldsToUpdate.email = validateEmail(fieldsToUpdate.email) || false;
-  if (updates.gender)
-    fieldsToUpdate.gender = validateGender(fieldsToUpdate.gender) || false;
-  if (updates.phoneNo)
-    fieldsToUpdate.phoneNo = validatePhoneNo(fieldsToUpdate.phoneNo) || false;
-
-  //Find All Invalid Fields
-  const invalidFields = Object.keys(fieldsToUpdate)
-    .filter((key) => fieldsToUpdate[key] === false)
-    .join(", ");
-
-  if (invalidFields) {
-    throw new ApiError(
-      400,
-      `Invalid data provided for fields: ${invalidFields}`
-    );
-  }
+  console.log(fieldsToUpdate);
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
@@ -325,7 +268,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
       }
     });
   }
-  console.log("User avatar updated successfully")
+  console.log("User avatar updated successfully");
   res
     .status(200)
     .json(new ApiResponse(200, user, "User avatar updated successfully"));
@@ -341,3 +284,6 @@ module.exports = {
 };
 
 // When writing controller to update username also write logic to remane directory where the user data is stored.
+
+// Is it necessary to check for allowed updates while updating user?
+// Find better way to validate usernameOrEmail while logingin
