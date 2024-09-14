@@ -1,11 +1,5 @@
 const mongoose = require("mongoose");
 const {
-  ADDRESS,
-  MANAGER,
-  EDITOR,
-  ADMIN,
-  CUSTOMER,
-  OWNER,
   OTHERS,
   FEMALE,
   MALE,
@@ -16,7 +10,7 @@ const {
   USER,
 } = require("../constants/models.constants");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema(
   {
@@ -51,18 +45,28 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: [MALE, FEMALE, OTHERS],
     },
+    // roles: {
+    //   type: [String],
+    //   enum: [MANAGER, EDITOR, ADMIN, CUSTOMER, OWNER],
+    //   default: CUSTOMER,
+    // },
     roles: {
-      type: [String],
-      enum: [MANAGER, EDITOR, ADMIN, CUSTOMER, OWNER],
-      default: CUSTOMER,
-    },
-    addresses: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: ADDRESS,
-        //references to address schema
+      CUSTOMER: {
+        type: Number,
+        default: 2189,
       },
-    ],
+      MANAGER: Number,
+      EDITOR: Number,
+      ADMIN: Number,
+      OWNER: Number,
+    },
+    // addresses: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: ADDRESS,
+    //     //references to address schema
+    //   },
+    // ],
     status: {
       type: String,
       enum: [ACTIVE, INACTIVE, UNDER_REVIEW, BLOCKED],

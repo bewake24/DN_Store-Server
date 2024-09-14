@@ -4,6 +4,13 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 
 const addAnAddress = asyncHandler(async (req, res) => {
+
+  // While adding an address
+  // 1. Check if user already have an addresses.
+  // 2. If no address exits, make incoming address as default.
+  // 3. If user already have some default address, and wants incoming address as default address
+  // 3.1. Set isDefault to false for default address and set it to true for incoming address
+
   console.log("username: ", req.user.username);
   console.log(req.body);
   // Get address etails from frontend
@@ -13,13 +20,14 @@ const addAnAddress = asyncHandler(async (req, res) => {
     name,
     phoneNo,
     alternatePhoneNo,
-    landmark,
     pinCode,
     locality,
     address,
     city,
-    state,
-    country,
+    addressState,
+    landmark,
+    addressType,
+    isDefault,
   } = req.body;
 
   // Check for empty required fields
@@ -56,15 +64,17 @@ const addAnAddress = asyncHandler(async (req, res) => {
   //   }
 
   const newAddress = await Address.create({
-    userId,
     name,
     phoneNo,
+    alternatePhoneNo,
     pinCode,
-    city,
-    addressState: state,
-    country,
-    landmark,
+    locality,
     address,
+    city,
+    addressState,
+    landmark,
+    addressType,
+    isDefault,
   });
 
   console.log(`Address updated successfully to the user ${userId}`);
@@ -85,17 +95,12 @@ const getUserAddresses = asyncHandler(async (req, res) => {
     "-createdAt -updatedAt -userId"
   );
 
-  console.log("Addresses fetched successfully");
+  let message = `All addresses for user ${req.user.name} fetched successfully`;
+  if (!addresses.length) {
+    message = `No address found for user ${req.user.name}`;
+  }
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        addresses,
-        `All addresses for user ${req.user.name} fetched successfully`
-      )
-    );
+  res.status(200).json(new ApiResponse(200, addresses, message));
 });
 
 const updateAnAddress = asyncHandler(async (req, res) => {
@@ -145,5 +150,5 @@ module.exports = {
   addAnAddress,
   getUserAddresses,
   updateAnAddress,
-  deleteAnAddress
+  deleteAnAddress,
 };
