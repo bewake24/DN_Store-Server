@@ -4,7 +4,10 @@ const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
-const { validateEmail, validateUsername } = require("../utils/inputValidation/validators");
+const {
+  validateEmail,
+  validateUsername,
+} = require("../utils/inputValidation/validators");
 const User = require("../model/user.model");
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -38,6 +41,8 @@ const registerUser = asyncHandler(async (req, res) => {
     userAvatar = req.file?.filename;
   }
 
+  console.log(userAvatar)
+
   // create user object & entry in DB
   const user = await User.create({
     name,
@@ -66,24 +71,12 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  // Get data from frontend
-  const { usernameOrEmail, password } = req.body;
-
-  let email;
-  let username;
-
-  // Validate data;
-  if (validateEmail(usernameOrEmail)) email = validateEmail(usernameOrEmail);
-  if (validateUsername(usernameOrEmail))
-    username = validateUsername(usernameOrEmail);
-
-  if (!email && !username) {
-    throw new ApiError(400, "Valid username or email is required");
-  }
+  // Get data vaidated data from frontend
+  let { usernameOrEmail, password } = req.validFields;
 
   // Find user
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
   }).exec();
 
   // Match User
@@ -274,16 +267,59 @@ const updateAvatar = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User avatar updated successfully"));
 });
 
+const updateUsername = asyncHandler(async (req, res) => {
+  const incomingUsername = req.validFields.username;
+  const oldUsername = req.user.username;
+  // Get user from cookies
+
+  if(!req.user?._id === incomingUsername){
+    throw new ApiError(403, "New username can't be same as current username");
+  }
+
+  if (!req.user?._id) {
+    throw new ApiError(404, "User not loggedin or not found");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: { username: incomingUsername },
+    },
+    {
+      new: true,
+      runValidators: true, // Run validation on update
+    }
+  );
+  console.log("User updated successfully");
+  console.log(user.username)
+
+  // Rename folder for user according to the new username
+  const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
+  const newPath = path.join(__dirname, "..", "public", "uploads", incomingUsername);
+
+  fs.rename(oldPath, newPath, (err) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log("Successfully renamed the directory.")
+    }
+  })
+
+  console.log({oldPath, newPath})
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "User updated successfully"));
+});
+
 module.exports = {
   registerUser,
   loginUser,
   logout,
+  updateUsername,
   refreshAccessToken,
   updateUserInfo,
   updateAvatar,
 };
 
-// When writing controller to update username also write logic to remane directory where the user data is stored.
-
 // Is it necessary to check for allowed updates while updating user?
-// Find better way to validate usernameOrEmail while logingin

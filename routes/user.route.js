@@ -5,6 +5,7 @@ const {
   refreshAccessToken,
   updateUserInfo,
   updateAvatar,
+  updateUsername,
 } = require("../controllers/user.controller");
 const {
   addAnAddress,
@@ -19,7 +20,7 @@ const validateInputs = require("../middleware/validateInputs.middleware");
 const router = require("express").Router();
 
 router.route("/register").post( upload.single("avatar"), validateInputs, registerUser);
-router.route("/login").post(loginUser); // if using form data in frontend then add upload.none() middleware in the route
+router.route("/login").post(validateInputs, loginUser); // if using form data in frontend then add upload.none() middleware in the route
 //    or check:=> Content-Type multipart/form-data (in postman)
 //    or send data in form data in postman as: x-www-form-urlencoded
 
@@ -27,6 +28,7 @@ router.route("/login").post(loginUser); // if using form data in frontend then a
 router.route("/logout").post(verifyJWT, logout);
 router.route("/refresh-access-token").get(verifyJWT, refreshAccessToken);
 router.route("/update-user").patch(verifyJWT, validateInputs,  updateUserInfo);
+router.route("/update-username").patch(verifyJWT, validateInputs, updateUsername);
 router
   .route("/update-avatar")
   .post(verifyJWT, upload.single("avatar"), updateAvatar);

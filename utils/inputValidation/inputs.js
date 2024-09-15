@@ -14,6 +14,7 @@ const inputs = {
     landmark: 'landmark',
     addressType: 'addressType',
     isDefault: 'isDefault',
+    usernameOrEmail: 'usernameOrEmail',
 };
 
 module.exports = inputs
