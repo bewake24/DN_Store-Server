@@ -81,6 +81,7 @@ userSchema.methods.generateAccessToken = function () {
       _id: this._id, // Which data you want to be saved in payload.
       email: this.email,
       username: this.username,
+      roles: this.roles,
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }

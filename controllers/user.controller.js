@@ -4,10 +4,6 @@ const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
-const {
-  validateEmail,
-  validateUsername,
-} = require("../utils/inputValidation/validators");
 const User = require("../model/user.model");
 
 const generateAccessAndRefreshToken = async (userId) => {
