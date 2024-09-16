@@ -2,10 +2,11 @@ const mongoose = require("mongoose");
 const {
   CATEGORY,
   TAG,
-  VARIATION,
   USER,
-  REVIEW,
   PRODUCT,
+  PUBLISHED,
+  DRAFT,
+  UNDER_REVIEW,
 } = require("../constants/models.constants");
 
 const productSchema = new mongoose.Schema(
@@ -18,6 +19,11 @@ const productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
+      unique: true,
+    },
+    pruductType: {
+      type: String,
+      enum: ["variable", "simple"],
     },
     description: {
       type: String,
@@ -27,32 +33,63 @@ const productSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: CATEGORY,
-        //Refrences to category model
       },
     ],
     tags: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: TAG,
-        //refrences to tag model
-      },
-    ],
-    variations: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: VARIATION,
       },
     ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: USER,
-      //refrences to user model who are store manager
     },
-    reviews: [
+    productStatus: {
+      type: String,
+      enum: [PUBLISHED, DRAFT, UNDER_REVIEW],
+      default: "active",
+    },
+
+    // simple product specific fields
+    price: {
+      type: Number,
+      required: function () {
+        return this.pruductType === "simple";
+      },
+    },
+    salePrice: {
+      type: Number,
+      required: function () {
+        return this.pruductType === "simple";
+      },
+    },
+
+    stockQuantity: {
+      type: Number,
+      required: function () {
+        return this.pruductType === "simple";
+      },
+    },
+    sku: {
+      type: String,
+      uppercase: true,
+      unique: true,
+      required: function () {
+        return this.productType === "simple"; // Required only for simple products
+      },
+    },
+    // variable product specific fields
+    attributes: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: REVIEW,
-        //refrences to reviews model
+        ref: "Attribute",
+      },
+    ],
+    variations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Option",
       },
     ],
   },

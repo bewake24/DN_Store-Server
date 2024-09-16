@@ -31,5 +31,8 @@ module.exports = {
     ACTIVE: "ACTIVE",
     INACTIVE: "INACTIVE",
     UNDER_REVIEW: "UNDER_REVIEW",
-    BLOCKED: "BLOCKED"
+    BLOCKED: "BLOCKED",
+    
+    PUBLISHED: "PUBLISHED",
+    DRAFT: "DRAFT",
   };
