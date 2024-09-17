@@ -8,6 +8,7 @@ const {
   updateUsername,
   getAllUsers,
   getUsersByRole,
+  addRoleToUser,
 } = require("../controllers/user.controller");
 const ROLES_LIST = require("../config/rolesList");
 
@@ -35,12 +36,15 @@ router
 router
   .route("/update-avatar")
   .post(verifyJWT, upload.single("avatar"), updateAvatar);
-
 router
   .route("/get-all-users")
   .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getAllUsers);
 router
   .route("/get-users")
   .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getUsersByRole);
+
+router.route("/add-roles/:id")
+  .patch(verifyRoles(ROLES_LIST.ADMIN),
+  addRoleToUser)
 
 module.exports = router;

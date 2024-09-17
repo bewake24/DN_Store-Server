@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const User = require("../model/user.model");
+const ROLES_LIST = require("../config/rolesList");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -90,7 +91,7 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-refreshToken"
   );
   const options = {
     httpOnly: true,
@@ -309,17 +310,54 @@ const updateUsername = asyncHandler(async (req, res) => {
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("id username name");
-  console.log(users.map((user) => user.username));
+  const users = await User.find().select("roles username").lean();
+  // console.log(users)
+  console.log(users[0].roles)
+  user = users.map((user) => user.username);
+  // console.log(users.map((user) => user.username));
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
   console.log(req.query)
-  const users = await User.find({ role: req.query }).select("id username name");
-  console.log(users.map((user) => user.username));
-  // res.status(200).json(new ApiResponse(200, users, "All users fetched"));
+  const roles = req.query.roles ? req.query.roles.toUpperCase().split(",") : [];
+  const numericRoles = roles.map((role) => ROLES_LIST[role]).filter(role => role !== undefined);
+  console.log(numericRoles)
+
+  if (!numericRoles.length) {
+    return res.status(400).json({ message: 'Invalid roles provided' });
+  }
+
+  const objects = numericRoles.map((role) => ({ [`roles.${Object.keys(ROLES_LIST).find(key => ROLES_LIST[key] === role)}`]: role }));
+  console.log(objects)
+
+  const users = await User.find({
+    $or: numericRoles.map(roleValue => ({
+      [`roles.${Object.keys(ROLES_LIST).find(key => ROLES_LIST[key] === roleValue)}`]: roleValue
+    }))
+  });
+  console.log(users.length);
+  res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
+
+const addRoleToUser = asyncHandler(async (req, res) => {
+  //Find user to be updated
+  //If not exists gieve error
+  //Get Incoming roles from request
+  //Update roles in DB
+  //Give success response
+  const user = await User.findById(req.params.id).select("roles");
+  console.log(users)
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  currentRoles = Object.values(user.roles)
+  const incomingRoles = req.validFields.roles;
+  console.log(incomingRoles, currentRoles)
+
+})
 
 module.exports = {
   registerUser,
@@ -330,7 +368,8 @@ module.exports = {
   updateUserInfo,
   updateAvatar,
   getAllUsers,
-  getUsersByRole
+  getUsersByRole,
+  addRoleToUser,
 };
 
 // Is it necessary to check for allowed updates while updating user?

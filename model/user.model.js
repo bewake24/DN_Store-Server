@@ -11,6 +11,7 @@ const {
 } = require("../constants/models.constants");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const ROLES_LIST = require("../config/rolesList");
 
 const userSchema = new mongoose.Schema(
   {
@@ -68,8 +69,25 @@ userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
+
+  if(this.isModified("roles")){
+    const rolesInSchemaForm = {}
+
+    if(Array.isArray(this.roles)){
+      this.roles.forEach(roleValue => {
+        for(const roleName in ROLES_LIST){
+          if(ROLES_LIST[roleName] === roleValue){
+            rolesInSchemaForm[roleName] = roleValue
+          }
+        }
+      })
+    }
+    this.roles = rolesInSchemaForm
+  }
+
   next();
 });
+
 
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
