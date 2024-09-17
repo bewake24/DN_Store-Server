@@ -6,16 +6,15 @@ const {
   updateUserInfo,
   updateAvatar,
   updateUsername,
+  getAllUsers,
+  getUsersByRole,
 } = require("../controllers/user.controller");
-const {
-  addAnAddress,
-  getUserAddresses,
-  updateAnAddress,
-  deleteAnAddress,
-} = require("../controllers/address.controller");
+const ROLES_LIST = require("../config/rolesList");
+
 const upload = require("../middleware/multer.middleware");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
 const validateInputs = require("../middleware/validateInputs.middleware");
+const verifyRoles = require("../middleware/verifyRoles.middleware");
 
 const router = require("express").Router();
 
@@ -37,12 +36,11 @@ router
   .route("/update-avatar")
   .post(verifyJWT, upload.single("avatar"), updateAvatar);
 
-// Address Routes by User
-router.route("/add-an-address").post(verifyJWT, addAnAddress);
-router.route("/get-user-addresses").get(verifyJWT, getUserAddresses);
 router
-  .route("/address/:id")
-  .put(verifyJWT, updateAnAddress)
-  .delete(verifyJWT, deleteAnAddress);
+  .route("/get-all-users")
+  .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getAllUsers);
+router
+  .route("/get-users")
+  .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getUsersByRole);
 
 module.exports = router;
