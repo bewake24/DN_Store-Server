@@ -1,10 +1,10 @@
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
+const User = require("../model/user.model");
 const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
-const User = require("../model/user.model");
 const ROLES_LIST = require("../config/rolesList");
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -76,6 +76,9 @@ const loginUser = asyncHandler(async (req, res) => {
     $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
   }).exec();
 
+  // console.log("first")
+  console.log(user.roles, "I ferte ")
+
   // Match User
   if (!user) {
     throw new ApiError(404, "User does not exist");
@@ -117,7 +120,6 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  // console.log(req.user);
   // Remove remove user credentials from Db
   await User.findByIdAndUpdate(
     req.user._id,
@@ -207,7 +209,6 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     }
   });
 
-  console.log(fieldsToUpdate);
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
@@ -288,7 +289,6 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   );
   console.log("User updated successfully");
-  console.log(user.username)
 
   // Rename folder for user according to the new username
   const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
@@ -311,10 +311,8 @@ const updateUsername = asyncHandler(async (req, res) => {
 
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select("roles username").lean();
-  // console.log(users)
   console.log(users[0].roles)
   user = users.map((user) => user.username);
-  // console.log(users.map((user) => user.username));
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
 
@@ -342,20 +340,22 @@ const getUsersByRole = asyncHandler(async (req, res) => {
 
 const addRoleToUser = asyncHandler(async (req, res) => {
   //Find user to be updated
-  //If not exists gieve error
+  //If not exists give error
   //Get Incoming roles from request
   //Update roles in DB
   //Give success response
+  console.log("I will add role to user")
   const user = await User.findById(req.params.id).select("roles");
-  console.log(users)
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  currentRoles = Object.values(user.roles)
+  let currentRoles = Object.values(user.roles).filter((role) => role)
   const incomingRoles = req.validFields.roles;
-  console.log(incomingRoles, currentRoles)
+
+  // user.roles = { ...user.roles, ...incomingRoles };
+  console.log(user.roles)
 
 })
 
@@ -373,3 +373,8 @@ module.exports = {
 };
 
 // Is it necessary to check for allowed updates while updating user?
+
+
+// Current goal is to when fetching user data to frontend user roles should only be shown in the form of array with their role IDs. 
+
+// We have already induced pre save hook in mogoose middleware which help us to update roles in DB according to the schema we want.

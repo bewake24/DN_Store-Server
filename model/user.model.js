@@ -72,6 +72,7 @@ userSchema.pre("save", async function (next) {
 
   if(this.isModified("roles")){
     const rolesInSchemaForm = {}
+    console.log(this.roles)
 
     if(Array.isArray(this.roles)){
       this.roles.forEach(roleValue => {
@@ -87,7 +88,6 @@ userSchema.pre("save", async function (next) {
 
   next();
 });
-
 
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
