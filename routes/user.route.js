@@ -42,13 +42,5 @@ router
 router
   .route("/get-users")
   .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getUsersByRole);
-router
-  .route("/add-roles/:id")
-  .patch(
-    verifyJWT,
-    verifyRoles(ROLES_LIST.ADMIN),
-    validateInputs,
-    addRoleToUser
-  );
 
 module.exports = router;

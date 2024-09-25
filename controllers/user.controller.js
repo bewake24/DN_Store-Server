@@ -335,35 +335,6 @@ const getUsersByRole = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
 
-const addRoleToUser = asyncHandler(async (req, res) => {
-  let user = await User.findById(req.params.id).select("roles name").lean();
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  let currentRoles = rolesObjectToArray(user).roles;
-  const incomingRoles = req.validFields.roles
-    .toString()
-    .split(",")
-    .map((role) => Number(role));
-
-  user.roles = rolesArrayToObject([
-    ...new Set([...currentRoles, ...incomingRoles]),
-  ]);
-
-  await User.findByIdAndUpdate(req.params.id, { roles: user.roles });
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        rolesObjectToArray(user),
-        "User updated successfully"
-      )
-    );
-});
-
 module.exports = {
   registerUser,
   loginUser,
@@ -374,7 +345,6 @@ module.exports = {
   updateAvatar,
   getAllUsers,
   getUsersByRole,
-  addRoleToUser,
 };
 
 // Is it necessary to check for allowed updates while updating user?

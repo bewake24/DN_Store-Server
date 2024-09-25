@@ -41,6 +41,7 @@ app.use('/api/v1/uploads', express.static(path.join(__dirname, 'public/uploads')
 //routes
 app.use('/api/v1', require('./routes/root'))
 app.use('/api/v1/user', require('./routes/user.route'))
+app.use('/api/v1/role', require('./routes/roles.routes'))
 app.use('/api/v1/address', require('./routes/address.route'))
 
 
