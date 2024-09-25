@@ -7,6 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const ROLES_LIST = require("../config/rolesList");
 const rolesObjectToArray = require("../utils/rolesObjectToArray");
+const rolesArrayToObject = require("../utils/rolesArrayToObject");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -76,9 +77,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({
     $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
   }).exec();
-
-  // console.log("first")
-  console.log(user.roles, "I ferte ");
 
   // Match User
   if (!user) {
@@ -318,23 +316,14 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
-  console.log(req.query);
   const roles = req.query.roles ? req.query.roles.toUpperCase().split(",") : [];
   const numericRoles = roles
     .map((role) => ROLES_LIST[role])
     .filter((role) => role !== undefined);
-  console.log(numericRoles);
 
   if (!numericRoles.length) {
     return res.status(400).json({ message: "Invalid roles provided" });
   }
-
-  const objects = numericRoles.map((role) => ({
-    [`roles.${Object.keys(ROLES_LIST).find(
-      (key) => ROLES_LIST[key] === role
-    )}`]: role,
-  }));
-  console.log(objects);
 
   const users = await User.find({
     $or: numericRoles.map((roleValue) => ({
@@ -343,28 +332,36 @@ const getUsersByRole = asyncHandler(async (req, res) => {
       )}`]: roleValue,
     })),
   });
-  console.log(users.length);
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
 
 const addRoleToUser = asyncHandler(async (req, res) => {
-  //Find user to be updated
-  //If not exists give error
-  //Get Incoming roles from request
-  //Update roles in DB
-  //Give success response
-  console.log("I will add role to user");
-  const user = await User.findById(req.params.id).select("roles");
+  let user = await User.findById(req.params.id).select("roles name").lean();
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  let currentRoles = Object.values(user.roles).filter((role) => role);
-  const incomingRoles = req.validFields.roles;
+  let currentRoles = rolesObjectToArray(user).roles;
+  const incomingRoles = req.validFields.roles
+    .toString()
+    .split(",")
+    .map((role) => Number(role));
 
-  // user.roles = { ...user.roles, ...incomingRoles };
-  console.log(user.roles);
+  user.roles = rolesArrayToObject([
+    ...new Set([...currentRoles, ...incomingRoles]),
+  ]);
+
+  await User.findByIdAndUpdate(req.params.id, { roles: user.roles });
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        rolesObjectToArray(user),
+        "User updated successfully"
+      )
+    );
 });
 
 module.exports = {
@@ -381,7 +378,3 @@ module.exports = {
 };
 
 // Is it necessary to check for allowed updates while updating user?
-
-// Current goal is to when fetching user data to frontend user roles should only be shown in the form of array with their role IDs.
-
-// We have already induced pre save hook in mogoose middleware which help us to update roles in DB according to the schema we want.

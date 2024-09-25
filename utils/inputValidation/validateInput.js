@@ -25,7 +25,6 @@ const validateInput = (input, type) => {
     case "usernameOrEmail":
       return validateEmail(input) || validateUsername(input);
     default:
-      console.log("input")
       return input;
   }
 };

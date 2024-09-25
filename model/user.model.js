@@ -69,23 +69,6 @@ userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-
-  if(this.isModified("roles")){
-    const rolesInSchemaForm = {}
-    console.log(this.roles)
-
-    if(Array.isArray(this.roles)){
-      this.roles.forEach(roleValue => {
-        for(const roleName in ROLES_LIST){
-          if(ROLES_LIST[roleName] === roleValue){
-            rolesInSchemaForm[roleName] = roleValue
-          }
-        }
-      })
-    }
-    this.roles = rolesInSchemaForm
-  }
-
   next();
 });
 
@@ -114,6 +97,10 @@ userSchema.methods.generateRefreshToken = function () {
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   );
+};
+
+userSchema.methods.rolesObjectToArray = function () {
+  return Object.values(this.roles);
 };
 
 const User = mongoose.model(USER, userSchema);
