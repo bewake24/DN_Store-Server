@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const ROLES_LIST = require("../config/rolesList");
+const rolesObjectToArray = require("../utils/rolesObjectToArray");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -38,7 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
     userAvatar = req.file?.filename;
   }
 
-  console.log(userAvatar)
+  console.log(userAvatar);
 
   // create user object & entry in DB
   const user = await User.create({
@@ -77,7 +78,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }).exec();
 
   // console.log("first")
-  console.log(user.roles, "I ferte ")
+  console.log(user.roles, "I ferte ");
 
   // Match User
   if (!user) {
@@ -93,9 +94,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     user._id
   );
-  const loggedInUser = await User.findById(user._id).select(
-    "-refreshToken"
-  );
+  const loggedInUser = await User.findById(user._id).select("-refreshToken");
   const options = {
     httpOnly: true,
     secure: true,
@@ -209,7 +208,6 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     }
   });
 
-
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -270,7 +268,7 @@ const updateUsername = asyncHandler(async (req, res) => {
   const oldUsername = req.user.username;
   // Get user from cookies
 
-  if(!req.user?._id === incomingUsername){
+  if (!req.user?._id === incomingUsername) {
     throw new ApiError(403, "New username can't be same as current username");
   }
 
@@ -292,47 +290,58 @@ const updateUsername = asyncHandler(async (req, res) => {
 
   // Rename folder for user according to the new username
   const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
-  const newPath = path.join(__dirname, "..", "public", "uploads", incomingUsername);
+  const newPath = path.join(
+    __dirname,
+    "..",
+    "public",
+    "uploads",
+    incomingUsername
+  );
 
   fs.rename(oldPath, newPath, (err) => {
     if (err) {
-      console.log(err)
+      console.log(err);
     } else {
-      console.log("Successfully renamed the directory.")
+      console.log("Successfully renamed the directory.");
     }
-  })
+  });
 
-  console.log({oldPath, newPath})
+  console.log({ oldPath, newPath });
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User updated successfully"));
+  res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("roles username").lean();
-  console.log(users[0].roles)
-  user = users.map((user) => user.username);
+  let users = await User.find().select("roles username").lean();
+  users = rolesObjectToArray(users);
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
-  console.log(req.query)
+  console.log(req.query);
   const roles = req.query.roles ? req.query.roles.toUpperCase().split(",") : [];
-  const numericRoles = roles.map((role) => ROLES_LIST[role]).filter(role => role !== undefined);
-  console.log(numericRoles)
+  const numericRoles = roles
+    .map((role) => ROLES_LIST[role])
+    .filter((role) => role !== undefined);
+  console.log(numericRoles);
 
   if (!numericRoles.length) {
-    return res.status(400).json({ message: 'Invalid roles provided' });
+    return res.status(400).json({ message: "Invalid roles provided" });
   }
 
-  const objects = numericRoles.map((role) => ({ [`roles.${Object.keys(ROLES_LIST).find(key => ROLES_LIST[key] === role)}`]: role }));
-  console.log(objects)
+  const objects = numericRoles.map((role) => ({
+    [`roles.${Object.keys(ROLES_LIST).find(
+      (key) => ROLES_LIST[key] === role
+    )}`]: role,
+  }));
+  console.log(objects);
 
   const users = await User.find({
-    $or: numericRoles.map(roleValue => ({
-      [`roles.${Object.keys(ROLES_LIST).find(key => ROLES_LIST[key] === roleValue)}`]: roleValue
-    }))
+    $or: numericRoles.map((roleValue) => ({
+      [`roles.${Object.keys(ROLES_LIST).find(
+        (key) => ROLES_LIST[key] === roleValue
+      )}`]: roleValue,
+    })),
   });
   console.log(users.length);
   res.status(200).json(new ApiResponse(200, users, "All users fetched"));
@@ -344,20 +353,19 @@ const addRoleToUser = asyncHandler(async (req, res) => {
   //Get Incoming roles from request
   //Update roles in DB
   //Give success response
-  console.log("I will add role to user")
+  console.log("I will add role to user");
   const user = await User.findById(req.params.id).select("roles");
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  let currentRoles = Object.values(user.roles).filter((role) => role)
+  let currentRoles = Object.values(user.roles).filter((role) => role);
   const incomingRoles = req.validFields.roles;
 
   // user.roles = { ...user.roles, ...incomingRoles };
-  console.log(user.roles)
-
-})
+  console.log(user.roles);
+});
 
 module.exports = {
   registerUser,
@@ -374,7 +382,6 @@ module.exports = {
 
 // Is it necessary to check for allowed updates while updating user?
 
-
-// Current goal is to when fetching user data to frontend user roles should only be shown in the form of array with their role IDs. 
+// Current goal is to when fetching user data to frontend user roles should only be shown in the form of array with their role IDs.
 
 // We have already induced pre save hook in mogoose middleware which help us to update roles in DB according to the schema we want.
