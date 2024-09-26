@@ -40,8 +40,6 @@ const registerUser = asyncHandler(async (req, res) => {
     userAvatar = req.file?.filename;
   }
 
-  console.log(userAvatar);
-
   // create user object & entry in DB
   const user = await User.create({
     name,
@@ -56,7 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // Check if user created in database of not & remove password and refresh token from response
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -addresses"
-  );
+  ).lean();
 
   if (!createdUser) {
     throw new ApiError(500, "Error while registering the user.");
@@ -66,7 +64,7 @@ const registerUser = asyncHandler(async (req, res) => {
   console.log("User added successfully");
   res
     .status(201)
-    .json(new ApiResponse(200, createdUser, "User registered Successfully"));
+    .json(new ApiResponse(200, rolesObjectToArray(createdUser), "User registered Successfully"));
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -92,7 +90,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     user._id
   );
-  const loggedInUser = await User.findById(user._id).select("-refreshToken");
+  const loggedInUser = await User.findById(user._id).select("-refreshToken").lean();
   const options = {
     httpOnly: true,
     secure: true,
@@ -107,7 +105,7 @@ const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: loggedInUser,
+          user: rolesObjectToArray(loggedInUser),
           accessToken,
           refreshToken,
         },
@@ -215,11 +213,11 @@ const updateUserInfo = asyncHandler(async (req, res) => {
       new: true,
       runValidators: true, // Run validation on update
     }
-  );
+  ).lean();
   console.log("User updated successfully");
   res
     .status(200)
-    .json(new ApiResponse(200, updatedUser, "User updated successfully"));
+    .json(new ApiResponse(200, rolesObjectToArray(updatedUser), "User updated successfully"));
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
@@ -283,7 +281,7 @@ const updateUsername = asyncHandler(async (req, res) => {
       new: true,
       runValidators: true, // Run validation on update
     }
-  );
+  ).lean();
   console.log("User updated successfully");
 
   // Rename folder for user according to the new username
@@ -304,9 +302,7 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   });
 
-  console.log({ oldPath, newPath });
-
-  res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
+  res.status(200).json(new ApiResponse(200, rolesObjectToArray(user), "User updated successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -331,8 +327,8 @@ const getUsersByRole = asyncHandler(async (req, res) => {
         (key) => ROLES_LIST[key] === roleValue
       )}`]: roleValue,
     })),
-  });
-  res.status(200).json(new ApiResponse(200, users, "All users fetched"));
+  }).lean();
+  res.status(200).json(new ApiResponse(200, rolesObjectToArray(users), "All users fetched"));
 });
 
 module.exports = {
