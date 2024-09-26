@@ -14,14 +14,12 @@ const assignRoleToUser = asyncHandler(async (req, res) => {
   }
 
   if(!req.validFields?.roles){
-    throw new ApiError(404, "Roles filed is empty")
+    throw new ApiError(404, "Roles field is empty")
   }
 
   let currentRoles = rolesObjectToArray(user).roles;
   const incomingRoles = req.validFields.roles
-    .toString()
-    .split(",")
-    .map((role) => Number(role));
+  console.log(incomingRoles)
 
   user.roles = rolesArrayToObject([
     ...new Set([...currentRoles, ...incomingRoles]),
@@ -47,11 +45,12 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
+  if(!req.validFields?.roles){
+    throw new ApiError(404, "Roles field is empty")
+  }
+
   let currentRoles = rolesObjectToArray(user).roles;
   let rolesToRevoke = req.validFields.roles
-  .toString()
-  .split(",")
-  .map((role) => Number(role));
 
   if(rolesToRevoke.includes(CUSTOMER)){
     throw new ApiError(404, "revoke request contains default user role, can't remove this. If you want user to not access this platform kindly change the status of user to Blocked.")

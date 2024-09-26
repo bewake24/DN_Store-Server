@@ -1,3 +1,4 @@
+const ROLES_LIST = require("../../config/rolesList");
 const { MALE, FEMALE, OTHERS } = require("../../constants/models.constants");
 
 const validateEmail = (emailAddress) => {
@@ -36,6 +37,16 @@ const validateGender = (genderValue) => {
   return validGenderValues.includes(genderValue) ? genderValue : false;
 };
 
+const validateRoles = (roles) => {
+  const validRoles = Object.values(ROLES_LIST);
+  const rolesArray = roles
+  .toString()
+  .split(",")
+  .map((role) => Number(role));
+  
+  return rolesArray.every((role) => validRoles.includes(role)) ? rolesArray : false
+};
+
 module.exports = {
   validateEmail,
   validatePassword,
@@ -43,6 +54,7 @@ module.exports = {
   validatePhoneNo,
   validateUsername,
   validateGender,
+  validateRoles
 }
 
 // Current Approach

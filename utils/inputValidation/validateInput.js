@@ -5,6 +5,7 @@ const {
   validatePhoneNo,
   validateUsername,
   validateGender,
+  validateRoles
 } = require("./validators.js");
 
 const validateInput = (input, type) => {
@@ -24,6 +25,8 @@ const validateInput = (input, type) => {
       return validateGender(input);
     case "usernameOrEmail":
       return validateEmail(input) || validateUsername(input);
+    case "roles":
+      return validateRoles(input)
     default:
       return input;
   }

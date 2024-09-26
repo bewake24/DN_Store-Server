@@ -15,6 +15,7 @@ const inputs = {
     addressType: 'addressType',
     isDefault: 'isDefault',
     usernameOrEmail: 'usernameOrEmail',
+    roles: 'roles'
 };
 
 module.exports = inputs

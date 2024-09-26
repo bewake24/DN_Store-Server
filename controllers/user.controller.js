@@ -7,7 +7,6 @@ const path = require("path");
 const fs = require("fs");
 const ROLES_LIST = require("../config/rolesList");
 const rolesObjectToArray = require("../utils/rolesObjectToArray");
-const rolesArrayToObject = require("../utils/rolesArrayToObject");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
