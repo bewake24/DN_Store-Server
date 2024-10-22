@@ -1,16 +1,16 @@
 # THE DN STORE 
 
-### Constants
+## Constants
 `{{serverURL}}` : Default Server link for the api.\
      e.g. `http://localhost:3000/api/v1` to run locally.
 
-### TOOLS
+## TOOLS
 ![Postman](https://skillicons.dev/icons?i=postman,docker)
 
 Download Postman: [https://www.postman.com/downloads](https://www.postman.com/downloads)\
 Download Docker: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
 
-### USER END POINTS
+## USER END POINTS
 
 | Name| End Point | Method |
 | -----| --------- | ------ |
@@ -97,8 +97,7 @@ Download Docker: [https://www.docker.com/products/docker-desktop](https://www.do
 ```
 
 ### Logout User
-
-`Input:` User Must be logged in
+**Requirements:** User Must be logged in.
 
 `Output:`
 
@@ -113,8 +112,7 @@ Download Docker: [https://www.docker.com/products/docker-desktop](https://www.do
 
 
 ### Refresh Access Token
-
-`Input:` User Must be logged in
+**Requirements:** User Must be logged in. 
 
 `Output:`
 ```
@@ -149,7 +147,7 @@ Download Docker: [https://www.docker.com/products/docker-desktop](https://www.do
         "_id": "6717d02705a8877943698394",
         "username": "test_prity",
         "password": "$2b$10$CP0rHhwlTpchkfk0uIRv4.AxdbX9v30CKg97CmgrDN7lx17mz4oCy",
-        "name": "Prity",
+        "name": "Prity Jinta",
         "email": "prity2@test.in",
         "phoneNo": "9123456780",
         "gender": "FEMALE",
