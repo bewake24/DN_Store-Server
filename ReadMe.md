@@ -18,7 +18,7 @@ Download Docker: [https://www.docker.com/products/docker-desktop](https://www.do
 |Login User | `{{serverURI}}/user/login` | POST |
 |Logout User | `{{serverURI}}/user/logout` | POST |
 |Refresh Access Token | `{{serverURI}}/user/refresh-access-token` | GET |
-|Get An User | `{{serverURL}}/user/register` | POST |
+|Update User | `{{serverURI}}/user/update-user` | PATCH |
 
 
 ### Register An user
@@ -124,6 +124,45 @@ Download Docker: [https://www.docker.com/products/docker-desktop](https://www.do
         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzE3ZDAyNzA1YTg4Nzc5NDM2OTgzOTQiLCJlbWFpbCI6InByaXR5QHRlc3QuY29tIiwidXNlcm5hbWUiOiJ0ZXN0X3ByaXR5Iiwicm9sZXMiOnsiQ1VTVE9NRVIiOjIxODl9LCJpYXQiOjE3Mjk2MTQ3MzMsImV4cCI6MTcyOTcwMTEzM30.6FDwQA2p8tjoNFIQHSPscH6we2npnedEK0-FyTaQ1NA"
     },
     "message": "New Tokens generated succesfully",
+    "success": true
+}
+```
+
+### Update user
+**Requirements:** User Must be logged in. \
+**Updatable Fields:** Name, email, phone, gender, 
+
+`Input: ` 
+| Key| Type | Value | 
+| ---| ---- | ----- | 
+| name | String | Prity Jinta | Yes|
+| email | String | prity2@test.in |
+| phoneNo | String | 9123456780 |
+| gender | String | FEMALE |
+
+`Output: `
+
+```
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6717d02705a8877943698394",
+        "username": "test_prity",
+        "password": "$2b$10$CP0rHhwlTpchkfk0uIRv4.AxdbX9v30CKg97CmgrDN7lx17mz4oCy",
+        "name": "Prity",
+        "email": "prity2@test.in",
+        "phoneNo": "9123456780",
+        "gender": "FEMALE",
+        "roles": [
+            2189
+        ],
+        "status": "ACTIVE",
+        "createdAt": "2024-10-22T16:17:43.347Z",
+        "updatedAt": "2024-10-22T16:42:14.159Z",
+        "__v": 0,
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzE3ZDAyNzA1YTg4Nzc5NDM2OTgzOTQiLCJpYXQiOjE3Mjk2MTUyNDAsImV4cCI6MTczMDQ3OTI0MH0.zX1rRY7k1ysWfEi39IyTV3wRSDVuUYJCz-n_khSz2pU"
+    },
+    "message": "User updated successfully",
     "success": true
 }
 ```
