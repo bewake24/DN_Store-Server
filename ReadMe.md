@@ -15,7 +15,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 - Step 1 : `npm install` Install the dependencies.
 - Step 2 : Setup `.env` file
 - Step 2 : Configure and start the mongodb database.
-- Step 3 : `npm run dev` Start the application locally. : 
+- Step 3 : `npm run dev` Start the application locally. 
 
 ## Constants
 `{{serverURL}}` : Default Server link for the api.\
