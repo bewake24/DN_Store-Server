@@ -1,3 +1,7 @@
+**Root Navigation:** | [Tools & Technologies](#tools-technologies) | [API End Points](#user-end-points) | [How to Run the Application](#how-to-run-the-application) | [Constants](#constants) |
+
+**User End Points** : [Register An user](#register-an-user) | [Register An user](#register-an-user) | [Login User](#login-user) | [Logout User](#logout-user) | [Refresh Access Token](#refresh-access-token) | [Update User](#update-user) | [Update Username]
+
 # THE DN STORE 
 
 ## TOOLS & Technologies
@@ -30,6 +34,8 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 |Logout User | `{{serverURI}}/user/logout` | POST |
 |Refresh Access Token | `{{serverURI}}/user/refresh-access-token` | GET |
 |Update User | `{{serverURI}}/user/update-user` | PATCH |
+|Update Username | `{{serverURI}}/user/update-username` | PATCH |
+
 
 
 ### Register An user
@@ -174,4 +180,40 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
     "message": "User updated successfully",
     "success": true
 }
+```
+
+
+### Update Username
+**Requirements:** User Must be logged in. 
+
+`Input: `
+
+| Key| Value |
+| ---| ----- |
+| username | preety |
+
+`Output: `
+```
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6717d02705a8877943698394",
+        "username": "preety",
+        "password": "$2b$10$CP0rHhwlTpchkfk0uIRv4.AxdbX9v30CKg97CmgrDN7lx17mz4oCy",
+        "name": "Prity",
+        "email": "prity2@test.in",
+        "phoneNo": "9123456780",
+        "gender": "FEMALE",
+        "roles": [
+            2189
+        ],
+        "status": "ACTIVE",
+        "createdAt": "2024-10-22T16:17:43.347Z",
+        "updatedAt": "2024-10-23T04:56:09.497Z",
+        "__v": 0,
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzE3ZDAyNzA1YTg4Nzc5NDM2OTgzOTQiLCJpYXQiOjE3Mjk2NTkzNTMsImV4cCI6MTczMDUyMzM1M30.hj1E-o7d8pY4yTPLU6QgHashG4Z9aKL-ZOV2MGs6rOA"
+    },
+    "message": "User updated successfully",
+    "success": true
+} 
 ```
