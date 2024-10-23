@@ -1,6 +1,6 @@
 **Root Navigation:** | [Tools & Technologies](#tools-technologies) | [API End Points](#user-end-points) | [How to Run the Application](#how-to-run-the-application) | [Constants](#constants) |
 
-**User End Points** : [Register An user](#register-an-user) | [Register An user](#register-an-user) | [Login User](#login-user) | [Logout User](#logout-user) | [Refresh Access Token](#refresh-access-token) | [Update User](#update-user) | [Update Username]
+**User End Points** : [Register An user](#register-an-user) | [Register An user](#register-an-user) | [Login User](#login-user) | [Logout User](#logout-user) | [Refresh Access Token](#refresh-access-token) | [Update User](#update-user) | [Update Username](#update-username)
 
 # THE DN STORE 
 
