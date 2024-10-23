@@ -1,16 +1,16 @@
 # THE DN STORE 
 
-## tab Constants
+## Constants
 `{{serverURL}}` : Default Server link for the api.\
      e.g. `http://localhost:3000/api/v1` to run locally.
 
-## tab TOOLS
+## TOOLS
 ![Postman](https://skillicons.dev/icons?i=postman,docker)
 
 Download Postman: [https://www.postman.com/downloads](https://www.postman.com/downloads)\
 Download Docker: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
 
-## tab USER END POINTS
+## USER END POINTS
 
 | Name| End Point | Method |
 | -----| --------- | ------ |
