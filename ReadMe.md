@@ -1,14 +1,25 @@
 # THE DN STORE 
 
+## TOOLS & Technologies
+![Postman](https://skillicons.dev/icons?i=postman,docker,nodejs,mongodb,express)
+
+Download Postman: [https://www.postman.com/downloads](https://www.postman.com/downloads)\
+Download Docker: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)\
+Download Node.js: [https://nodejs.org/en/](https://nodejs.org/en/)\
+Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
+
+
+
+## How to Run the Application
+- Step 0 : `cd your-root-directory` Go to the root directory of project.
+- Step 1 : `npm install` Install the dependencies.
+- Step 2 : Setup `.env` file
+- Step 2 : Configure and start the mongodb database.
+- Step 3 : `npm run dev` Start the application locally. : 
+
 ## Constants
 `{{serverURL}}` : Default Server link for the api.\
      e.g. `http://localhost:3000/api/v1` to run locally.
-
-## TOOLS
-![Postman](https://skillicons.dev/icons?i=postman,docker)
-
-Download Postman: [https://www.postman.com/downloads](https://www.postman.com/downloads)\
-Download Docker: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
 
 ## USER END POINTS
 
