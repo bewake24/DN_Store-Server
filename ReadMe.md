@@ -25,6 +25,8 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 `{{serverURL}}` : Default Server link for the api.\
      e.g. `http://localhost:3000/api/v1` to run locally.
 
+## API ENDPOINTS
+
 ## USER END POINTS
 
 | Name| End Point | Method |
