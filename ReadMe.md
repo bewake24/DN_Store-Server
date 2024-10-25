@@ -11,6 +11,8 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Now, With some experience of working on wordpress and with small businesses I found a few problems and functionalities which I wanted to be in my store. but still I was bit consfused so without any end in the mind I casually started to code this thing. now I have clarity on few things and I'm slowly working on the project.
 
+If you liked my story and motivation please give this repo a star 🌟 and follow me 😇 to track my progress. Thank you ⚡️
+
 
 ## TOOLS & Technologies 
 ![Postman](https://skillicons.dev/icons?i=postman,docker,nodejs,mongodb,express)
