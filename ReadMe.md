@@ -1,10 +1,20 @@
-**Root Navigation:** | [Tools & Technologies](#tools-technologies) | [API End Points](#user-end-points) | [How to Run the Application](#how-to-run-the-application) | [Constants](#constants) |
-
-**User End Points** : [Register An user](#register-an-user) | [Register An user](#register-an-user) | [Login User](#login-user) | [Logout User](#logout-user) | [Refresh Access Token](#refresh-access-token) | [Update User](#update-user) | [Update Username](#update-username)
 
 # THE DN STORE 
+![image](https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)
 
-## TOOLS & Technologies
+**🧭 Root Navigation:** | [Tools & Technologies](#tools-&-technologies-↑) | [API End Points](#user-end-points) | [How to Run the Application](#how-to-run-the-application) | [Constants](#constants) |\
+**⬆️ User** : [Register An user](#register-an-user-↑) | [Login User](#login-user-↑) | [Logout User](#logout-user-↑) | [Refresh Access Token](#refresh-access-token-↑) | [Update User](#update-user-↑) | [Update Username](#update-username-↑) | [Get All User](#get-all-users-↑) | [Get Users By Roles](#get-users-by-role-↑) |
+
+
+
+**Instruction(s):**
+- **[↑](#the-dn-store)** Click this arrow to scroll to top of the page.
+- Root navigation directs you to the corresponding section of the page.
+- Other navigation represents the subsection of each section. 
+- Each section contains one feature of the backend.
+
+
+## TOOLS & Technologies [↑](#the-dn-store)
 ![Postman](https://skillicons.dev/icons?i=postman,docker,nodejs,mongodb,express)
 
 Download Postman: [https://www.postman.com/downloads](https://www.postman.com/downloads)\
@@ -14,14 +24,14 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 
 
 
-## How to Run the Application
+## How to Run the Application [↑](#the-dn-store)
 - Step 0 : `cd your-root-directory` Go to the root directory of project.
 - Step 1 : `npm install` Install the dependencies.
 - Step 2 : Setup `.env` file
 - Step 2 : Configure and start the mongodb database.
 - Step 3 : `npm run dev` Start the application locally. 
 
-## Constants
+## Constants [↑](#the-dn-store)
 `{{serverURL}}` : Default Server link for the api.\
      e.g. `http://localhost:3000/api/v1` to run locally.
 
@@ -37,10 +47,12 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 |Refresh Access Token | `{{serverURI}}/user/refresh-access-token` | GET |
 |Update User | `{{serverURI}}/user/update-user` | PATCH |
 |Update Username | `{{serverURI}}/user/update-username` | PATCH |
+|Get All User | `{{serverURI}}/user/get-all-users` | GET |
+|Get Users By Roles | `{{serverURI}}/user/get-users?roles=role-1,role-2` | GET |
 
 
 
-### Register An user
+### Register An user [↑](#the-dn-store)
 `Input: `   
 | Key| Type | Value |
 | ---| ---- | ----- |
@@ -76,7 +88,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 }
 ```
 
-### Login An User
+### Login User [↑](#the-dn-store)
 `Input: `
 ```
 {
@@ -115,7 +127,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 }
 ```
 
-### Logout User
+### Logout User [↑](#the-dn-store)
 **Requirements:** User Must be logged in.
 
 `Output:`
@@ -130,7 +142,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 ```
 
 
-### Refresh Access Token
+### Refresh Access Token [↑](#the-dn-store)
 **Requirements:** User Must be logged in. 
 
 `Output:`
@@ -145,7 +157,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 }
 ```
 
-### Update user
+### Update user [↑](#the-dn-store)
 **Requirements:** User Must be logged in. \
 **Updatable Fields:** Name, email, phone, gender, 
 
@@ -185,7 +197,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 ```
 
 
-### Update Username
+### Update Username [↑](#the-dn-store)
 **Requirements:** User Must be logged in. 
 
 `Input: `
@@ -219,3 +231,58 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
     "success": true
 } 
 ```
+### Get All Users [↑](#the-dn-store)
+**Requirements:** User Must be logged in and and have role of ADMIN.
+`Input: `
+
+`Output: `
+```
+{
+    "statusCode": 200,
+    "data": [
+        {
+            "_id": "6717d02705a8877943698394",
+            "username": "preety",
+            "roles": [
+                2189,
+                2065
+            ]
+        }
+    ],
+    "message": "All users fetched",
+    "success": true
+}
+```
+
+### Get Users By Role [↑](#the-dn-store)
+**Requirements:** User Must be logged in and and have role of ADMIN.
+
+`Output: `
+```
+{
+    "statusCode": 200,
+    "data": [
+                {
+            "_id": "6717d02705a8877943698394",
+            "username": "preety",
+            "password": "$2b$10$CP0rHhwlTpchkfk0uIRv4.AxdbX9v30CKg97CmgrDN7lx17mz4oCy",
+            "name": "Prity",
+            "email": "prity2@test.in",
+            "phoneNo": "9162318970",
+            "gender": "MALE",
+            "roles": [
+                2189
+            ],
+            "status": "ACTIVE",
+            "createdAt": "2024-10-22T16:17:43.347Z",
+            "updatedAt": "2024-10-25T16:53:15.273Z",
+            "__v": 0,
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzE3ZDAyNzA1YTg4Nzc5NDM2OTgzOTQiLCJpYXQiOjE3Mjk4NzUxOTUsImV4cCI6MTczMDczOTE5NX0.48gLiEaD2QkIedD4dRLRS7MUAVK06XIWIaY4R3tVLuQ"
+        }
+    ],
+    "message": "All users fetched",
+    "success": true
+}
+```
+
+
