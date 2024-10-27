@@ -38,6 +38,7 @@ Download MongoDB: [https://www.mongodb.com/](https://www.mongodb.com/)
 
 1. [All API End Points](./docs/APIEndPoints.md)
 2. [User End Points](./docs/UserEndPoints.md)
+3. [Roles End Points](./docs/RolesEndPoints.md)
 
 
 ### Going through the documentation
