@@ -35,4 +35,7 @@ module.exports = {
     
     PUBLISHED: "PUBLISHED",
     DRAFT: "DRAFT",
+
+    SIMPLE: "simple",
+    VARIABLE: "variable",
   };
