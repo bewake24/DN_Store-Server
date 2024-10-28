@@ -14,6 +14,8 @@
 
 
 ### Register An user 
+
+**Body type:** x-www-form-urlencoded
 `Input: `   
 | Key| Type | Value |
 | ---| ---- | ----- |
@@ -50,6 +52,8 @@
 ```
 
 ### Login User 
+**Body type:** raw
+
 `Input: `
 ```json
 {
@@ -120,7 +124,8 @@
 
 ### Update user 
 **Requirements:** User Must be logged in. \
-**Updatable Fields:** Name, email, phone, gender, 
+**Updatable Fields:** Name, email, phone, gender,  \
+**Body type:** x-www-form-urlencoded
 
 `Input: ` 
 | Key| Type | Value | 
@@ -159,7 +164,8 @@
 
 
 ### Update Username 
-**Requirements:** User Must be logged in. 
+**Requirements:** User Must be logged in. \
+**Body type:** x-www-form-urlencoded
 
 `Input: `
 
@@ -194,7 +200,6 @@
 ```
 ### Get All Users 
 **Requirements:** User Must be logged in and and have role of ADMIN.
-`Input: `
 
 `Output: `
 ```json

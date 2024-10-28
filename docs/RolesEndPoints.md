@@ -8,7 +8,8 @@
 
 ### Assign Roles
 
-**Requirements:** User assigning roles to a person must have admin previleges.
+**Requirements:** User assigning roles to a person must have admin previleges.\
+**Body type:** x-www-form-urlencoded
 
 `Input: `
 | Key| Type | Value |
@@ -38,7 +39,8 @@
 
 ### Revoke Roles
 
-**Requirements:** User revoking roles to a person must have admin previleges.
+**Requirements:** User revoking roles to a person must have admin previleges. \
+**Body type:** x-www-form-urlencoded
 
 `Input: `
 
