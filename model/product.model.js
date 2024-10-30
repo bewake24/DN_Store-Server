@@ -33,6 +33,16 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    thumbnail: {
+      type: String,
+      trim: true,
+    },
+    gallery: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,61 +65,37 @@ const productSchema = new mongoose.Schema(
       default: DRAFT,
     },
 
-    // simple product specific fields
-    price: {
-      type: Number,
-      required: function () {
-        return this.pruductType === SIMPLE;
-      },
-    },
-    salePrice: {
-      type: Number,
-      required: function () {
-        return this.pruductType === SIMPLE;
+    variations: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variation" }], // List of variations
+      validate: {
+        validator: function (value) {
+          // Simple product must have exactly one variation
+          return (
+            (this.productType === SIMPLE && value.length === 1) ||
+            (this.productType === VARIABLE && value.length > 1)
+          );
+        },
+        message: (props) =>
+          `A ${props.instance.productType} product must have ${
+            props.instance.productType === SIMPLE ? "one" : "more than one"
+          } variation(s).`,
       },
     },
 
-    stockQuantity: {
-      type: Number,
-      required: function () {
-        return this.pruductType === SIMPLE;
-      },
-    },
-    sku: {
-      type: String,
-      uppercase: true,
-      unique: true,
-      required: function () {
-        return this.productType === SIMPLE; // Required only for simple products
-      },
-    },
     // variable product specific fields
     attributes: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Attribute",
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             // custom validation logic here
             return this.productType === VARIABLE;
           },
-          message: 'Variations are required for product type VARIABLE'
-        }
+          message: "Variations are required for product type VARIABLE",
+        },
       },
     ],
-variations: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Option",
-        validate: {
-          validator: function(value) {
-            // custom validation logic here
-            return this.productType === VARIABLE;
-          },
-          message: 'Variations are required for product type VARIABLE'
-        }
-      },
-    ]
   },
   { timestamps: true }
 );
