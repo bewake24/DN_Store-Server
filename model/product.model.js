@@ -32,6 +32,14 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
+      trim: true,
+    },
+    shortDescription: {
+      type: String,
+      trim: true,
+      required: true,
+      minlength: 4,
+      maxlength: 512,
     },
     thumbnail: {
       type: String,
@@ -66,19 +74,22 @@ const productSchema = new mongoose.Schema(
     },
 
     variations: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variation" }], // List of variations
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Variation",
+        },
+      ], // List of variations
       validate: {
         validator: function (value) {
           // Simple product must have exactly one variation
           return (
             (this.productType === SIMPLE && value.length === 1) ||
-            (this.productType === VARIABLE && value.length > 1)
+            (this.productType === VARIABLE && value.length >= 1)
           );
         },
         message: (props) =>
-          `A ${props.instance.productType} product must have ${
-            props.instance.productType === SIMPLE ? "one" : "more than one"
-          } variation(s).`,
+          `${props.instance.productType === SIMPLE ? "A SIMPLE Product must have exactly one variation." : "A VARIABLE Product must have at least one variation."}`,
       },
     },
 
@@ -89,10 +100,9 @@ const productSchema = new mongoose.Schema(
         ref: "Attribute",
         validate: {
           validator: function (value) {
-            // custom validation logic here
             return this.productType === VARIABLE;
           },
-          message: "Variations are required for product type VARIABLE",
+          message: "Attributes are required for VARIABLE products.",
         },
       },
     ],

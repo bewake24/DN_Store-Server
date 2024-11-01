@@ -106,3 +106,11 @@ userSchema.methods.rolesObjectToArray = function () {
 const User = mongoose.model(USER, userSchema);
 
 module.exports = User;
+
+
+/*
+  put regex in the model.
+  remove validators from the code.
+  validate directly while saving in the DB. 
+
+*/
