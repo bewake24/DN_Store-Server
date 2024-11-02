@@ -11,6 +11,7 @@ const {
 } = require("../constants/models.constants");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { emailRegex, usernameRegex, passwordRegex, nameRegex} = require("../constants/regex.constants");
 const ROLES_LIST = require("../config/rolesList");
 
 const userSchema = new mongoose.Schema(
@@ -18,6 +19,9 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Username is required"],
+      match: [usernameRegex, "Username not in proper format"],
+      minlength: [3, "Username must be at least 3 characters long"],
+      maxlength: [32, "Username must be at most 32 characters long"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -25,17 +29,20 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      trim: true,
       required: [true, "Password is required"],
     },
     refreshToken: String,
     name: {
       type: String,
       trim: true,
+      match : [nameRegex, "Name not in proper format"],
       required: [true, "Name is required"],
     },
     avatar: String, //Save Images to a seperate folder and store the link of the image to database
     email: {
       type: String,
+      match: [emailRegex, "Email not in proper format"],
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
@@ -44,6 +51,7 @@ const userSchema = new mongoose.Schema(
     phoneNo: String,
     gender: {
       type: String,
+      uppercase: true,
       enum: [MALE, FEMALE, OTHERS],
     },
     roles: {
@@ -64,6 +72,16 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("validate", function(next){
+  if (this.isModified("password") && !passwordRegex.test(this.password)) {
+    this.invalidate(
+      "password",
+      "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character."
+    );
+  }
+  next();
+})
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
