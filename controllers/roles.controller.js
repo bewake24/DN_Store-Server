@@ -70,7 +70,6 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
         "User role revoked successfully"
       )
     );
-
 })
 
 module.exports = {
