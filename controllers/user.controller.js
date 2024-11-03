@@ -1,5 +1,3 @@
-const ApiError = require("../utils/ApiError");
-const ApiResponse = require("../utils/ApiResponse");
 const apiXRes = require("../utils/apiXRes");
 const User = require("../model/user.model");
 const asyncHandler = require("../utils/asyncHandler");
@@ -23,7 +21,7 @@ const generateAccessAndRefreshToken = async (userId) => {
     await user.save({ validateBeforeSave: false }); //didn't run validation to save the user here it will not ask for password.
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, "Error while generating access and refresh token");
+    apiXRes.error(res, "Error while generating access and refresh token", 500);
   }
 };
 
@@ -304,17 +302,17 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateUsername = asyncHandler(async (req, res) => {
-  const incomingUsername = req.username;
-  const oldUsername = req.user.username;
+  const incomingUsername = req.body.username;
+  const oldUsername = req.user?.username;
   // Get user from cookies
-  console.log(req.user?._id);
-
-  if (!req.user?._id === incomingUsername) {
-    throw new ApiError(403, "New username can't be same as current username");
-  }
+  console.log(req.user?.username);
 
   if (!req.user?._id) {
-    throw new ApiError(404, "User not loggedin or not found");
+    apiXRes.notFound(res, "User not loggedin or not found");
+  }
+
+  if (oldUsername === incomingUsername) {
+    apiXRes.forbidden(res, "New username can't be same as current username");
   }
 
   const user = await User.findByIdAndUpdate(
@@ -328,9 +326,11 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   ).lean();
   console.log("User updated successfully");
+  
 
   // Rename folder for user according to the new username
   const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
+  console.log(oldPath);
   const newPath = path.join(
     __dirname,
     "..",
@@ -347,21 +347,23 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   });
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        rolesObjectToArray(user),
-        "User updated successfully"
-      )
-    );
+  apiXRes.success(
+    res,
+    "User updated successfully",
+    rolesObjectToArray(user),
+    200
+  );
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
   let users = await User.find().select("roles username").lean();
   users = rolesObjectToArray(users);
-  res.status(200).json(new ApiResponse(200, users, "All users fetched"));
+  apiXRes.success(
+    res,
+    "All users fetched",
+    users,
+    200
+  )
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
@@ -380,10 +382,13 @@ const getUsersByRole = asyncHandler(async (req, res) => {
         (key) => ROLES_LIST[key] === roleValue
       )}`]: roleValue,
     })),
-  }).lean();
-  res
-    .status(200)
-    .json(new ApiResponse(200, rolesObjectToArray(users), "All users fetched"));
+  }).select("roles username").lean();
+  apiXRes.success(
+    res,
+    "All users fetched",
+    rolesObjectToArray(users),
+    200
+  )
 });
 
 module.exports = {
