@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const { validateUsername } = require("../utils/inputValidation/validators");
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req, _, cb) {
     const username = req.user?.username || validateUsername(req.body.username);
 
     if (!username) {
@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
         false
       );
     }
+
     const uploadFilePath = path.join(
       __dirname,
       "..",
@@ -30,7 +31,7 @@ const storage = multer.diskStorage({
 
     cb(null, uploadFilePath);
   },
-  filename: function (req, file, cb) {
+  filename: function (_, file, cb) {
     const uniqueName = uuidv4() + path.extname(file.originalname);
     cb(null, file.fieldname + "-" + uniqueName);
   },
