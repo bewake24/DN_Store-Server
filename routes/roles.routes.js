@@ -13,7 +13,6 @@ router
   .patch(
     verifyJWT,
     verifyRoles(ROLES_LIST.ADMIN),
-    validateInputs,
     assignRoleToUser
   );
 
@@ -22,7 +21,6 @@ router
   .patch(
     verifyJWT,
     verifyRoles(ROLES_LIST.ADMIN),
-    validateInputs,
     revokeRoleFromUser
   );
 
