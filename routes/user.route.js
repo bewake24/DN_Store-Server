@@ -8,13 +8,11 @@ const {
   updateUsername,
   getAllUsers,
   getUsersByRole,
-  addRoleToUser,
 } = require("../controllers/user.controller");
 const ROLES_LIST = require("../config/rolesList");
 
 const upload = require("../middleware/multer.middleware");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
-const validateInputs = require("../middleware/validateInputs.middleware");
 const verifyRoles = require("../middleware/verifyRoles.middleware");
 
 const router = require("express").Router();

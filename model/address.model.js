@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { WORK, HOME, ADDRESS } = require("../constants/models.constants");
+const { phoneRegex, addressRegex, cityRegex, nameRegex, pincodeRegex} = require("../constants/regex.constants");
 
 const addressSchema = new mongoose.Schema(
   {
@@ -10,39 +11,61 @@ const addressSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      required: true,
+      match: [nameRegex, "Name not in proper format"],
+      trim: true,
+      required: [true, "Name is required"],
     },
     phoneNo: {
       type: String,
-      required: true,
+      trim: true,
+      maxlength: 16,
+      minlength: 4,
+      required: [true, "Phone number is required"],
+      match: [phoneRegex, "Phone number not in proper format"],
     },
     alternatePhoneNo: {
       type: String,
-      // required: true,
+      trim: true,
+      maxlength: 16,
+      minlength: 4,
+      match: [phoneRegex, "Phone number not in proper format"],
     },
     pinCode: {
       type: String,
       required: true,
+      trim: true,
+      match: [pincodeRegex, "Pincode not in proper format"],
     },
     locality: {
       type: String,
-      // required: true,
+      trim: true,
+      maxlength: 32,
     },
     address: {
+      trim: true,
+      maxlength: 256,
       type: String,
-      required: true,
+      match: [addressRegex, "Address not in proper format"],
+      required: [true, "Address is required"],
     },
     city: {
       type: String,
+      trim: true,
+      maxlength: 32,
       required: true,
+      match: [cityRegex, "City not in proper format"],
     },
     addressState: {
-      type: String, //Enum
+      trim: true,
+      maxlength: 32,
+      type: String,
       required: true,
+      match: [cityRegex, "State/UT not in proper format"],
     },
     landmark: {
+      trim: true,
+      maxlength: 256,
       type: String,
-      // required: true,
     },
     addressType: {
       type: String,

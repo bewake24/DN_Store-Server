@@ -8,4 +8,10 @@ const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
 
 const phoneRegex = /^\d{10}$/;
 
-module.exports = { emailRegex, usernameRegex, passwordRegex, nameRegex, phoneRegex};
+const cityRegex = /^[a-zA-Z\u0080-\u024F]+(?:. |-| |')*([1-9a-zA-Z\u0080-\u024F]+(?:. |-| |'))*[a-zA-Z\u0080-\u024F]*$/
+
+const addressRegex = /^\d{1,6}(?:[a-zA-Z]|\s?[A-Za-z])?(?:\s[a-zA-Z\u0080-\u024F0-9.,'-]+)*(?:\s(?:Apt|Suite|Unit|#)\s?\d{0,4}[A-Za-z]?)?(?:,\s?[A-Za-z\u0080-\u024F\s]+)?(?:,\s?[A-Za-z]{2,})?(?:\s\d{5}(-\d{4})?)?$/
+
+const pincodeRegex = /^[A-Za-z0-9\s-]{3,10}$/;
+
+module.exports = { emailRegex, usernameRegex, passwordRegex, nameRegex, phoneRegex, addressRegex, cityRegex, pincodeRegex };

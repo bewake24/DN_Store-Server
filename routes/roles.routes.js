@@ -2,7 +2,7 @@ const router = require("express").Router();
 const ROLES_LIST = require("../config/rolesList");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
 const verifyRoles = require("../middleware/verifyRoles.middleware");
-const validateInputs = require("../middleware/validateInputs.middleware");
+
 const {
   assignRoleToUser,
   revokeRoleFromUser,

@@ -11,7 +11,7 @@ const {
 } = require("../constants/models.constants");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { emailRegex, usernameRegex, passwordRegex, nameRegex} = require("../constants/regex.constants");
+const { emailRegex, phoneRegex, usernameRegex, passwordRegex, nameRegex} = require("../constants/regex.constants");
 const ROLES_LIST = require("../config/rolesList");
 
 const userSchema = new mongoose.Schema(
@@ -48,7 +48,13 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    phoneNo: String,
+    phoneNo: {
+      type: String,
+      trim: true,
+      maxlength: 16,
+      minlength: 4,
+      match: [phoneRegex, "Phone number not in proper format"],
+    },
     gender: {
       type: String,
       uppercase: true,
