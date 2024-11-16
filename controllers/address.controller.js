@@ -1,136 +1,170 @@
 const Address = require("../model/address.model");
-const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
-const ApiError = require("../utils/ApiError");
+const apiXRes = require("../utils/apiXRes");
+const invalidFieldMessage = require("../utils/invalidFieldMessage");
+const {
+  MONGOOSE_VALIDATION_ERROR,
+  MONGOOSE_OBJECT_ID,
+  MONGOOSE_CAST_ERROR,
+} = require("../constants/models.constants");
 
 const addAnAddress = asyncHandler(async (req, res) => {
-  console.log(req.body)
-  // Get address etails from frontend
-  let userId = req.user._id;
-  if (!userId) {
-    throw new ApiError(401, "Unauthorised User");
+  try {
+    // Get address details from frontend
+    let userId = req.user._id;
+    if (!userId) {
+      apiXRes.notFound(
+        404,
+        "User not found. User must be logged in to add an address"
+      );
+    }
+
+    let {
+      name,
+      phoneNo,
+      alternatePhoneNo,
+      pinCode,
+      locality,
+      address,
+      city,
+      addressState,
+      landmark,
+      addressType,
+      isDefault,
+    } = req.body;
+
+    const defaultAddress = await Address.findOne({ userId, isDefault: true });
+    if (isDefault && defaultAddress) {
+      defaultAddress.isDefault = false;
+      await defaultAddress.save();
+    }
+
+    if (!defaultAddress) isDefault = true;
+    console.log(defaultAddress);
+
+    const newAddress = await Address.create({
+      userId,
+      name,
+      phoneNo,
+      alternatePhoneNo,
+      pinCode,
+      locality,
+      address,
+      city,
+      addressState,
+      landmark,
+      addressType,
+      isDefault,
+    });
+
+    console.log(`Address added successfully to the user ${userId}`);
+
+    apiXRes.success(res, "Address added successfully", newAddress, 201);
+  } catch (err) {
+    if (err.name === MONGOOSE_VALIDATION_ERROR) {
+      return apiXRes.validationError(
+        res,
+        "User validation failed.",
+        invalidFieldMessage(err),
+        400
+      );
+    }
+    return apiXRes.error(res, err.message, 500, err);
   }
-
-  //Get address etails from frontend
-  let {
-    name,
-    phoneNo,
-    alternatePhoneNo,
-    pinCode,
-    locality,
-    address,
-    city,
-    addressState,
-    landmark,
-    addressType,
-    isDefault,
-  } = req.body;
-
-  // Check for empty required fields
-  const isEmpty = [name, phoneNo, pinCode, address, city, addressState].some(
-    (fields) => fields === undefined || fields.trim() === ""
-  );
-
-  if (isEmpty) {
-    throw new ApiError(400, "Please input the required fields");
-  }
-
-  const defaultAddress = await Address.findOne({ userId, isDefault: true });
-  if (isDefault && defaultAddress) {
-    defaultAddress.isDefault = false;
-    await defaultAddress.save();
-  }
-
-  if (!defaultAddress) isDefault = true;
-  console.log(defaultAddress);
-
-  const newAddress = await Address.create({
-    userId,
-    name,
-    phoneNo,
-    alternatePhoneNo,
-    pinCode,
-    locality,
-    address,
-    city,
-    addressState,
-    landmark,
-    addressType,
-    isDefault,
-  });
-
-  console.log(`Address added successfully to the user ${userId}`);
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, newAddress, "Address added successfully"));
 });
 
 const getUserAddresses = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  if (!userId) {
-    ApiResponse(401, "Unauthorised User");
-  }
-
   const addresses = await Address.find({ userId }).select(
     "-createdAt -updatedAt -userId"
   );
 
-  let message = `All addresses for user ${req.user.name} fetched successfully`;
-  if (!addresses.length) {
-    message = `No address found for user ${req.user.name}`;
-  }
+  const message = addresses.length
+    ? `All addresses for user ${req.user.name} fetched successfully`
+    : `No address found for user ${req.user.name}`;
 
-  res.status(200).json(new ApiResponse(200, addresses, message));
+  apiXRes.success(res, message, addresses, 200);
 });
 
 const updateAnAddress = asyncHandler(async (req, res) => {
-  const addressId = req.params.id;
+  try {
+    const addressId = req.params.id;
 
-  const addressUser = await Address.findById(addressId).select("userId");
-  if (addressUser.userId.toString() !== req.user._id.toString()) {
-    throw new ApiError(
-      403,
-      "Address doesn't belongs to this user and hence can't update the address"
-    );
-  }
-
-  if (req.body?.isDefault) {
-    const defaultAddress = await Address.findOne({
-      userId: req.user._id,
-      isDefault: true,
-    });
-    if (defaultAddress) {
-      defaultAddress.isDefault = false;
-      await defaultAddress.save();
+    const addressUser = await Address.findById(addressId).select("userId");
+    if (!addressUser) {
+      apiXRes.notFound(res, "Invalid address ID provided, Address not found");
     }
+    if (addressUser.userId.toString() !== req.user._id.toString()) {
+      apiXRes.forbidden(
+        res,
+        "Address doesn't belongs to loggedin user and hence can't update the address"
+      );
+    }
+
+    if (req.body?.isDefault) {
+      const defaultAddress = await Address.findOne({
+        userId: req.user._id,
+        isDefault: true,
+      });
+      if (defaultAddress) {
+        defaultAddress.isDefault = false;
+        await defaultAddress.save();
+      }
+    }
+    const address = await Address.findByIdAndUpdate(addressId, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    console.log("Address updated successfully");
+
+    apiXRes.success(res, "Address updated successfully", address, 200);
+  } catch (err) {
+    if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
+      return apiXRes.validationError(res, "Invalid address ID Fromat provided");
+    }
+
+    if (err.name === MONGOOSE_VALIDATION_ERROR) {
+      return apiXRes.validationError(
+        res,
+        "Address update failed due to invalid field provided",
+        invalidFieldMessage(err),
+        400
+      );
+    }
+    apiXRes.error(res, err.message, 500, err);
   }
-  const address = await Address.findByIdAndUpdate(addressId, req.body, {
-    new: true,
-  });
-  console.log("Address updated successfully");
-  res
-    .status(200)
-    .json(new ApiResponse(200, address, "Address updated successfully"));
 });
 
 const deleteAnAddress = asyncHandler(async (req, res) => {
-  const addressId = req.params.id;
+  try {
+    const addressId = req.params.id;
 
-  const addressUser = await Address.findById(addressId).select("userId");
-  if (addressUser.userId.toString() !== req.user._id.toString()) {
-    throw new ApiError(
-      403,
-      "Address doesn't belongs to this user and hence can't delete the address"
-    );
+    const addressUser = await Address.findById(addressId).select("userId");
+
+    if (!addressUser) {
+      apiXRes.notFound(res, "Invalid address ID provided, Address not found");
+    }
+
+    if (addressUser.userId.toString() !== req.user._id.toString()) {
+      apiXRes.forbidden(
+        res,
+        "Address doesn't belongs to loggedin user and hence can't delete the address"
+      );
+    }
+
+    const address = await Address.findByIdAndDelete(addressId);
+    console.log("Address deleted successfully");
+    apiXRes.success(res, "Address deleted successfully", address, 200);
+  } catch (err) {
+    if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
+      return apiXRes.validationError(
+        res,
+        "Invalid address ID Fromat in params"
+      );
+    }
+    apiXRes.error(res, err.message, 500, err);
   }
-
-  const address = await Address.findByIdAndDelete(addressId);
-  console.log("Address deleted successfully");
-  res
-    .status(200)
-    .json(new ApiResponse(200, address, "Address deleted successfully"));
 });
 
 module.exports = {

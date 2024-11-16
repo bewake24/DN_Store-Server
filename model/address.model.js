@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 const { WORK, HOME, ADDRESS } = require("../constants/models.constants");
-const { phoneRegex, addressRegex, cityRegex, nameRegex, pincodeRegex} = require("../constants/regex.constants");
+const {
+  phoneRegex,
+  addressRegex,
+  cityRegex,
+  nameRegex,
+  pincodeRegex,
+} = require("../constants/regex.constants");
 
 const addressSchema = new mongoose.Schema(
   {
@@ -32,7 +38,7 @@ const addressSchema = new mongoose.Schema(
     },
     pinCode: {
       type: String,
-      required: true,
+      required: [true, "Pincode is required"],
       trim: true,
       match: [pincodeRegex, "Pincode not in proper format"],
     },
@@ -72,7 +78,7 @@ const addressSchema = new mongoose.Schema(
       enum: [WORK, HOME],
       default: HOME,
     },
-    isDefault: { type: Boolean, default: false }
+    isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

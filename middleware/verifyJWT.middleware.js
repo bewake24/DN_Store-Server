@@ -11,7 +11,10 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       req.header("Authorisation")?.replace("Bearer ", ""); // req.header for requests which came from mobile application
 
     if (!token) {
-      apiXRes.unauthorized(res, "Unauthorised request");
+      apiXRes.unauthorized(
+        res,
+        "Unauthorised request make sure you are logged in and  you have proper access rights"
+      );
     }
 
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);

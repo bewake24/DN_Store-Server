@@ -75,7 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
         400
       );
     }
-    return apiXRes.error(res, err.message, 500, error);
+    return apiXRes.error(res, err.message, 500, err);
   }
 });
 
@@ -326,7 +326,6 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   ).lean();
   console.log("User updated successfully");
-  
 
   // Rename folder for user according to the new username
   const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
@@ -358,12 +357,7 @@ const updateUsername = asyncHandler(async (req, res) => {
 const getAllUsers = asyncHandler(async (req, res) => {
   let users = await User.find().select("roles username").lean();
   users = rolesObjectToArray(users);
-  apiXRes.success(
-    res,
-    "All users fetched",
-    users,
-    200
-  )
+  apiXRes.success(res, "All users fetched", users, 200);
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
@@ -382,13 +376,10 @@ const getUsersByRole = asyncHandler(async (req, res) => {
         (key) => ROLES_LIST[key] === roleValue
       )}`]: roleValue,
     })),
-  }).select("roles username").lean();
-  apiXRes.success(
-    res,
-    "All users fetched",
-    rolesObjectToArray(users),
-    200
-  )
+  })
+    .select("roles username")
+    .lean();
+  apiXRes.success(res, "All users fetched", rolesObjectToArray(users), 200);
 });
 
 module.exports = {
