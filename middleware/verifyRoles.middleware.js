@@ -1,4 +1,4 @@
-const apiXRes = require("../utils/apiXRes");
+const ApiResponse = require("../utils/ApiResponse");
 const verifyRoles =
   (...allowedRoles) =>
   (req, res, next) => {
@@ -8,7 +8,10 @@ const verifyRoles =
       .some((value) => value === true);
 
     if (!result) {
-      apiXRes.unauthorized(res, "You are not allowed to perform this action");
+      ApiResponse.unauthorized(
+        res,
+        "Chickens don't fly, You are not allowed to perform this action"
+      );
     }
     next();
   };

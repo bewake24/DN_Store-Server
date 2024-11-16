@@ -1,10 +1,59 @@
 class ApiResponse {
-    constructor(statusCode, data, message = "Success"){
-        this.statusCode = statusCode
-        this.data = data
-        this.message = message
-        this.success = statusCode < 400 //If Api is sending response this means status code is between 100-399
-    }
+  static success(res, message, data = {}, statusCode = 200) {
+    return res.status(statusCode).json({
+      status: "success",
+      message,
+      data,
+    });
+  }
+
+  static redirect(res, url, statusCode = 302) {
+    return res.redirect(statusCode, url);
+  }
+
+  static validationError(res, message, errors = {}, statusCode = 400) {
+    return res.status(statusCode).json({
+      status: "fail",
+      message,
+      errors,
+    });
+  }
+
+  static unauthorized(res, message = "Unauthorized access") {
+    return res.status(401).json({
+      status: "fail",
+      message,
+    });
+  }
+
+  static forbidden(res, message = "Access forbidden") {
+    return res.status(403).json({
+      status: "fail",
+      message,
+    });
+  }
+
+  static notFound(res, message = "Resource not found") {
+    return res.status(404).json({
+      status: "fail",
+      message,
+    });
+  }
+
+  static conflict(res, message = "Resource already exists", statusCode = 409) {
+    return res.status(statusCode).json({
+      status: "fail",
+      message,
+    });
+  }
+
+  static error(res, message, statusCode = 500, error = null) {
+    return res.status(statusCode).json({
+      status: "error",
+      message,
+      ...(error && { error: error.message || error }),
+    });
+  }
 }
 
-module.exports = ApiResponse
+module.exports = ApiResponse;

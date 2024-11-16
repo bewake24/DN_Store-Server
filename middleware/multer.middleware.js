@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
-const { validateUsername } = require("../utils/inputValidation/validators");
+const { validateUsername } = require("../utils/inputValidation/validators.js");
 
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
