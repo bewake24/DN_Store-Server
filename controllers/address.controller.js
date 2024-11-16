@@ -1,6 +1,6 @@
 const Address = require("../model/address.model");
 const asyncHandler = require("../utils/asyncHandler");
-const apiXRes = require("../utils/apiXRes");
+const ApiResponse = require("../utils/ApiResponse");
 const invalidFieldMessage = require("../utils/invalidFieldMessage");
 const {
   MONGOOSE_VALIDATION_ERROR,
@@ -13,7 +13,7 @@ const addAnAddress = asyncHandler(async (req, res) => {
     // Get address details from frontend
     let userId = req.user._id;
     if (!userId) {
-      apiXRes.notFound(
+      ApiResponse.notFound(
         404,
         "User not found. User must be logged in to add an address"
       );
@@ -59,17 +59,17 @@ const addAnAddress = asyncHandler(async (req, res) => {
 
     console.log(`Address added successfully to the user ${userId}`);
 
-    apiXRes.success(res, "Address added successfully", newAddress, 201);
+    ApiResponse.success(res, "Address added successfully", newAddress, 201);
   } catch (err) {
     if (err.name === MONGOOSE_VALIDATION_ERROR) {
-      return apiXRes.validationError(
+      return ApiResponse.validationError(
         res,
         "User validation failed.",
         invalidFieldMessage(err),
         400
       );
     }
-    return apiXRes.error(res, err.message, 500, err);
+    return ApiResponse.error(res, err.message, 500, err);
   }
 });
 
@@ -84,7 +84,7 @@ const getUserAddresses = asyncHandler(async (req, res) => {
     ? `All addresses for user ${req.user.name} fetched successfully`
     : `No address found for user ${req.user.name}`;
 
-  apiXRes.success(res, message, addresses, 200);
+  ApiResponse.success(res, message, addresses, 200);
 });
 
 const updateAnAddress = asyncHandler(async (req, res) => {
@@ -93,10 +93,13 @@ const updateAnAddress = asyncHandler(async (req, res) => {
 
     const addressUser = await Address.findById(addressId).select("userId");
     if (!addressUser) {
-      apiXRes.notFound(res, "Invalid address ID provided, Address not found");
+      ApiResponse.notFound(
+        res,
+        "Invalid address ID provided, Address not found"
+      );
     }
     if (addressUser.userId.toString() !== req.user._id.toString()) {
-      apiXRes.forbidden(
+      ApiResponse.forbidden(
         res,
         "Address doesn't belongs to loggedin user and hence can't update the address"
       );
@@ -118,21 +121,24 @@ const updateAnAddress = asyncHandler(async (req, res) => {
     });
     console.log("Address updated successfully");
 
-    apiXRes.success(res, "Address updated successfully", address, 200);
+    ApiResponse.success(res, "Address updated successfully", address, 200);
   } catch (err) {
     if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
-      return apiXRes.validationError(res, "Invalid address ID Fromat provided");
+      return ApiResponse.validationError(
+        res,
+        "Invalid address ID Fromat provided"
+      );
     }
 
     if (err.name === MONGOOSE_VALIDATION_ERROR) {
-      return apiXRes.validationError(
+      return ApiResponse.validationError(
         res,
         "Address update failed due to invalid field provided",
         invalidFieldMessage(err),
         400
       );
     }
-    apiXRes.error(res, err.message, 500, err);
+    ApiResponse.error(res, err.message, 500, err);
   }
 });
 
@@ -143,11 +149,14 @@ const deleteAnAddress = asyncHandler(async (req, res) => {
     const addressUser = await Address.findById(addressId).select("userId");
 
     if (!addressUser) {
-      apiXRes.notFound(res, "Invalid address ID provided, Address not found");
+      ApiResponse.notFound(
+        res,
+        "Invalid address ID provided, Address not found"
+      );
     }
 
     if (addressUser.userId.toString() !== req.user._id.toString()) {
-      apiXRes.forbidden(
+      ApiResponse.forbidden(
         res,
         "Address doesn't belongs to loggedin user and hence can't delete the address"
       );
@@ -155,15 +164,15 @@ const deleteAnAddress = asyncHandler(async (req, res) => {
 
     const address = await Address.findByIdAndDelete(addressId);
     console.log("Address deleted successfully");
-    apiXRes.success(res, "Address deleted successfully", address, 200);
+    ApiResponse.success(res, "Address deleted successfully", address, 200);
   } catch (err) {
     if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
-      return apiXRes.validationError(
+      return ApiResponse.validationError(
         res,
         "Invalid address ID Fromat in params"
       );
     }
-    apiXRes.error(res, err.message, 500, err);
+    ApiResponse.error(res, err.message, 500, err);
   }
 });
 

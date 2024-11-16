@@ -1,4 +1,4 @@
-const apiXRes = require("../utils/apiXRes");
+const ApiResponse = require("../utils/ApiResponse");
 const User = require("../model/user.model");
 const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
@@ -21,7 +21,11 @@ const generateAccessAndRefreshToken = async (userId) => {
     await user.save({ validateBeforeSave: false }); //didn't run validation to save the user here it will not ask for password.
     return { accessToken, refreshToken };
   } catch (error) {
-    apiXRes.error(res, "Error while generating access and refresh token", 500);
+    ApiResponse.error(
+      res,
+      "Error while generating access and refresh token",
+      500
+    );
   }
 };
 
@@ -50,9 +54,9 @@ const registerUser = asyncHandler(async (req, res) => {
       .lean();
 
     if (!createdUser) {
-      apiXRes.error(res, "Error while registering the user.", 500);
+      ApiResponse.error(res, "Error while registering the user.", 500);
     }
-    apiXRes.success(
+    ApiResponse.success(
       res,
       "User added successfully",
       rolesObjectToArray(createdUser),
@@ -60,7 +64,7 @@ const registerUser = asyncHandler(async (req, res) => {
     );
   } catch (err) {
     if (err.code === MONGOOSE_DUPLICATE_KEY) {
-      return apiXRes.conflict(
+      return ApiResponse.conflict(
         res,
         "User with this username or email already Exists.",
         409
@@ -68,14 +72,14 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     if (err.name === MONGOOSE_VALIDATION_ERROR) {
-      return apiXRes.validationError(
+      return ApiResponse.validationError(
         res,
         "User validation failed.",
         invalidFieldMessage(err),
         400
       );
     }
-    return apiXRes.error(res, err.message, 500, err);
+    return ApiResponse.error(res, err.message, 500, err);
   }
 });
 
@@ -90,13 +94,13 @@ const loginUser = asyncHandler(async (req, res) => {
 
   // Match User
   if (!user) {
-    return apiXRes.notFound(res, "User not found", 404);
+    return ApiResponse.notFound(res, "User not found", 404);
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
   console.log(isPasswordValid);
   if (!isPasswordValid) {
-    return apiXRes.unauthorized(res, "Password didn't matched", 401);
+    return ApiResponse.unauthorized(res, "Password didn't matched", 401);
   }
 
   // Send response back
@@ -116,7 +120,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options);
 
-  return apiXRes.success(
+  return ApiResponse.success(
     res,
     {
       user: rolesObjectToArray(loggedInUser),
@@ -152,14 +156,14 @@ const logout = asyncHandler(async (req, res) => {
 
   //Send response back
 
-  apiXRes.success(res, "User logged out successfully", {}, 200);
+  ApiResponse.success(res, "User logged out successfully", {}, 200);
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken; // req.body.refreshToken -> If user is sending data from moblie application
   if (!incomingRefreshToken) {
-    apiXRes.unauthorized(res, "Unauthorised request");
+    ApiResponse.unauthorized(res, "Unauthorised request");
   }
 
   try {
@@ -171,11 +175,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const user = await User.findById(decodedToken?._id);
 
     if (!user) {
-      apiXRes.unauthorized(res, "Invalid Refresh token");
+      ApiResponse.unauthorized(res, "Invalid Refresh token");
     }
 
     if (incomingRefreshToken !== user?.refreshToken) {
-      apiXRes.unauthorized(res, "Token expired or used");
+      ApiResponse.unauthorized(res, "Token expired or used");
     }
 
     const { accessToken, newRefreshToken } =
@@ -193,7 +197,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options);
 
-    apiXRes.success(
+    ApiResponse.success(
       res,
       {
         accessToken,
@@ -203,7 +207,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       200
     );
   } catch (error) {
-    apiXRes.unauthorized(res, "Invalid Refresh token sent");
+    ApiResponse.unauthorized(res, "Invalid Refresh token sent");
   }
 });
 
@@ -230,7 +234,7 @@ const updateUserInfo = asyncHandler(async (req, res) => {
       }
     ).lean();
     console.log("User updated successfully");
-    apiXRes.success(
+    ApiResponse.success(
       res,
       rolesObjectToArray(updatedUser),
       "User updated successfully",
@@ -238,21 +242,21 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     );
   } catch (err) {
     if (err.code === MONGOOSE_DUPLICATE_KEY) {
-      return apiXRes.conflict(
+      return ApiResponse.conflict(
         res,
         "New email already registered to another accountplease provide another email.",
         409
       );
     }
     if ((err.name = MONGOOSE_VALIDATION_ERROR)) {
-      return apiXRes.validationError(
+      return ApiResponse.validationError(
         res,
         "User update failed due to invalid field provided",
         invalidFieldMessage(err),
         400
       );
     } else {
-      apiXRes.error(res, error.message, 500, error);
+      ApiResponse.error(res, error.message, 500, error);
     }
   }
 });
@@ -261,11 +265,11 @@ const updateAvatar = asyncHandler(async (req, res) => {
   // Get user from cookies
   const user = await User.findById(req.user._id);
   if (!user) {
-    apiXRes.notFound(res, "User not loggedin or found");
+    ApiResponse.notFound(res, "User not loggedin or found");
   }
 
   if (!req.file) {
-    apiXRes.validationError(
+    ApiResponse.validationError(
       res,
       "Avatar update failed",
       { avatar: "Avatar is required" },
@@ -294,11 +298,11 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (fs.existsSync(oldAvatarPath)) {
     fs.unlink(oldAvatarPath, (err) => {
       if (err) {
-        apiXRes.error(res, "Failed to delete old avatar", 500, err);
+        ApiResponse.error(res, "Failed to delete old avatar", 500, err);
       }
     });
   }
-  apiXRes.success(res, user, "User avatar updated successfully", 200);
+  ApiResponse.success(res, user, "User avatar updated successfully", 200);
 });
 
 const updateUsername = asyncHandler(async (req, res) => {
@@ -308,11 +312,14 @@ const updateUsername = asyncHandler(async (req, res) => {
   console.log(req.user?.username);
 
   if (!req.user?._id) {
-    apiXRes.notFound(res, "User not loggedin or not found");
+    ApiResponse.notFound(res, "User not loggedin or not found");
   }
 
   if (oldUsername === incomingUsername) {
-    apiXRes.forbidden(res, "New username can't be same as current username");
+    ApiResponse.forbidden(
+      res,
+      "New username can't be same as current username"
+    );
   }
 
   const user = await User.findByIdAndUpdate(
@@ -346,7 +353,7 @@ const updateUsername = asyncHandler(async (req, res) => {
     }
   });
 
-  apiXRes.success(
+  ApiResponse.success(
     res,
     "User updated successfully",
     rolesObjectToArray(user),
@@ -357,7 +364,7 @@ const updateUsername = asyncHandler(async (req, res) => {
 const getAllUsers = asyncHandler(async (req, res) => {
   let users = await User.find().select("roles username").lean();
   users = rolesObjectToArray(users);
-  apiXRes.success(res, "All users fetched", users, 200);
+  ApiResponse.success(res, "All users fetched", users, 200);
 });
 
 const getUsersByRole = asyncHandler(async (req, res) => {
@@ -379,7 +386,7 @@ const getUsersByRole = asyncHandler(async (req, res) => {
   })
     .select("roles username")
     .lean();
-  apiXRes.success(res, "All users fetched", rolesObjectToArray(users), 200);
+  ApiResponse.success(res, "All users fetched", rolesObjectToArray(users), 200);
 });
 
 module.exports = {
