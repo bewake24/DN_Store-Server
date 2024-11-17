@@ -89,8 +89,16 @@ const productSchema = new mongoose.Schema(
           );
         },
         message: (props) =>
-          `${props.instance.productType === SIMPLE ? "A SIMPLE Product must have exactly one variation." : "A VARIABLE Product must have at least one variation."}`,
+          `${
+            props.instance.productType === SIMPLE
+              ? "A SIMPLE Product must have exactly one variation."
+              : "A VARIABLE Product must have at least one variation."
+          }`,
       },
+    },
+    publishDate: {
+      type: Date,
+      default: Date.now, // Sets the default date to the current time in ISO format
     },
 
     // variable product specific fields
