@@ -1,3 +1,9 @@
+const {
+  MONGOOSE_DUPLICATE_KEY,
+  MONGOOSE_VALIDATION_ERROR,
+  MONGOOSE_CAST_ERROR,
+  MONGOOSE_OBJECT_ID,
+} = require("../constants/models.constants");
 const Category = require("../model/category.model");
 const Product = require("../model/product.model");
 const ApiResponse = require("../utils/ApiResponse");
@@ -5,9 +11,20 @@ const asyncHandler = require("../utils/asyncHandler");
 
 const createCategory = asyncHandler(async (req, res) => {
   try {
-    const category = await Category.create(req.body);
-    ApiResponse.success(res, "Category created successfully", category);
+    let thumbnail;
+    console.log(req.file);
+    if (req.file) {
+      thumbnail = req.file.filename;
+    }
+    const category = await Category.create({ ...req.body, thumbnail });
+    ApiResponse.success(res, "Category created successfully", category, 201);
   } catch (error) {
+    if (error.name === MONGOOSE_VALIDATION_ERROR) {
+      return ApiResponse.error(res, invalidFieldMessage(error), 400);
+    }
+    if (error.code === MONGOOSE_DUPLICATE_KEY) {
+      return ApiResponse.error(res, "Category already exists", 400);
+    }
     ApiResponse.error(res, "Error while creating category", 500);
   }
 });
@@ -15,7 +32,13 @@ const createCategory = asyncHandler(async (req, res) => {
 const getCategories = asyncHandler(async (req, res) => {
   try {
     const categories = await Category.find();
-    ApiResponse.success(res, "Categories fetched successfully", categories);
+
+    ApiResponse.success(
+      res,
+      "Categories fetched successfully",
+      categories.length ? categories : "No categories found",
+      200
+    );
   } catch (error) {
     ApiResponse.error(res, "Error while fetching categories", 500);
   }
@@ -23,36 +46,49 @@ const getCategories = asyncHandler(async (req, res) => {
 
 const deleteCategory = asyncHandler(async (req, res) => {
   try {
-    const category = await Category.find(
-      { slug: req.params.slug } || { _id: req.params.id }
+    console.log(req.params);
+    const category = await Category.findOne(req.params);
+
+    if (!category) {
+      return ApiResponse.notFound(res, "Category not found", 404);
+    }
+
+    // Use async/await with Promise.all to handle product updates
+    const products = await Product.find({ categories: category._id });
+
+    // Remove the category reference from each product
+    await Promise.all(
+      products.map(async (product) => {
+        product.category = product.category.filter((c) => c !== category._id);
+        await product.save(); // Make sure each product is saved after updating
+      })
     );
 
-    // Can we use pre save hooks to save update products category name instead of doing this here.
-    Product.find({ categories: category._id }).then((products) => {
-      products.forEach((product) => {
-        product.category = [
-          ...product.category.filter((c) => c !== category._id),
-        ];
-        product.save();
-      });
-    });
+    // Delete the category
+    await category.deleteOne();
 
-    category.delete();
     ApiResponse.success(res, "Category deleted successfully", {});
   } catch (error) {
-    ApiResponse.error(res, "Error while deleting category", 500);
+    if (
+      error.name === MONGOOSE_CAST_ERROR &&
+      error.kind === MONGOOSE_OBJECT_ID
+    ) {
+      return ApiResponse.notFound(res, "Invalid object id provided", 404);
+    }
+    ApiResponse.error(res, "Error while deleting category", error, 500);
   }
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
   try {
-    const { name, slug, thumbnail, isActive } = req.body;
-    const category = await Category.find(
-      { slug: req.params.slug } || { _id: req.params.id },
-      {
-        new: true,
-      }
-    );
+    const { name, slug, isActive } = req.body;
+    let thumbnail;
+    if (req.file) {
+      thumbnail = req.file.filename;
+    }
+    const category = await Category.find(req.params, {
+      new: true,
+    });
 
     if (name) {
       // Can we use pre save hooks to save update products category name instead of doing this here.
@@ -67,7 +103,7 @@ const updateCategory = asyncHandler(async (req, res) => {
     }
 
     const updatedCategory = await Category.findOneAndUpdate(
-      { slug: req.params.slug } || { _id: req.params.id },
+      req.params,
       {
         name,
         slug,
