@@ -3,6 +3,7 @@ const {
   MONGOOSE_CAST_ERROR,
   MONGOOSE_OBJECT_ID,
 } = require("../constants/models.constants");
+const Product = require("../model/product.model");
 const Tag = require("../model/tag.model");
 const ApiResponse = require("../utils/ApiResponse");
 

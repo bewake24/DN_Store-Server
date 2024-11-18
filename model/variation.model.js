@@ -1,38 +1,37 @@
-const optionSchema = new mongoose.Schema({
+const VARIATION = require("../constants/models.constants");
+const variationSchema = new mongoose.Schema({
   attributes: [
     {
       name: { type: String, required: true },
-      value: { type: String, required: true }
+      value: { type: String, required: true },
     },
   ],
-    sku: {
-      type: String,
-      uppercase: true,
-      unique: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    salePrice: {
-      type: Number,
-    },
-    stockQuantity: {
-      type: Number,
-      default: -1,  // -1 for unlimited stock
-    }
-  });
-  
-  const Option = mongoose.model('Option', optionSchema);
-  
+  sku: {
+    type: String,
+    uppercase: true,
+    unique: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  salePrice: {
+    type: Number,
+  },
+  stockQuantity: {
+    type: Number,
+    default: -1, // -1 for unlimited stock
+  },
+});
 
+const Option = mongoose.model("variation", optionSchema);
 
 // If stockQuantity === -1  => Stock quantity not specified
 //If stockQuantity === 0  => Item not in stock and can't be ordered by CUSTOMER
 
 /*
  Displaying to the frontend
- Color: |  Red  |  Green  |  Blue   |   Yellow  |  Whilte   |
+ Color: |  Red  |  Green  |  Blue   |   Yellow  |  White   |
  Rendererd color : |  Red  |  Green  |  Blue   | only available for the given products ==> Do this through Set()
 
  Weight: |  2Kg  |  1Kg  |  500g   |   3Kg |

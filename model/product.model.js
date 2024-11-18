@@ -25,9 +25,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    pruductType: {
+    productType: {
       type: String,
       enum: [SIMPLE, VARIABLE],
+      required: true,
     },
     description: {
       type: String,
@@ -79,26 +80,26 @@ const productSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Variation",
         },
-      ], // List of variations
+      ],
       validate: {
         validator: function (value) {
-          // Simple product must have exactly one variation
-          return (
-            (this.productType === SIMPLE && value.length === 1) ||
-            (this.productType === VARIABLE && value.length >= 1)
-          );
+          if (this.productType === SIMPLE && value.length > 0) {
+            return false; // Invalid if SIMPLE product has any variations
+          }
+          if (this.productType === VARIABLE && value.length < 1) {
+            return false; // Invalid if VARIABLE product has no variations
+          }
+          return true;
         },
         message: (props) =>
-          `${
-            props.instance.productType === SIMPLE
-              ? "A SIMPLE Product must have exactly one variation."
-              : "A VARIABLE Product must have at least one variation."
-          }`,
+          props.instance.productType === SIMPLE
+            ? "A SIMPLE product must not have any variations."
+            : "A VARIABLE product must have at least one variation.",
       },
     },
     publishDate: {
       type: Date,
-      default: Date.now, // Sets the default date to the current time in ISO format
+      default: Date.now,
     },
 
     // variable product specific fields
@@ -117,6 +118,14 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Middleware to automatically generate a slug from the name
+productSchema.pre("validate", function (next) {
+  if (this.name && (!this.slug || this.isModified("name"))) {
+    this.slug = slugify(this.name, { lower: true, strict: true });
+  }
+  next();
+});
 
 const Product = mongoose.model(PRODUCT, productSchema);
 
