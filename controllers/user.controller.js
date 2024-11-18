@@ -98,7 +98,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
-  console.log(isPasswordValid);
+
   if (!isPasswordValid) {
     return ApiResponse.unauthorized(res, "Password didn't matched", 401);
   }

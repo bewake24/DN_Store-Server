@@ -6,6 +6,8 @@ const { logger } = require("./middleware/logEvents.middleware");
 // const errorHandler = require('./middleware/errorHandler')
 const corsOptions = require("./config/corsOptions");
 const mongoose = require("mongoose");
+// const session = require("express-session");
+// const csrf = require("lusca").csrf;
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/dbConn");
 const restrictDirectoryAccess = require("./middleware/uploads.middleware");
@@ -46,6 +48,7 @@ app.use("/api/v1/user", require("./routes/user.route"));
 app.use("/api/v1/role", require("./routes/roles.route"));
 app.use("/api/v1/address", require("./routes/address.route"));
 app.use("/api/v1/category", require("./routes/category.route"));
+app.use("/api/v1/tag", require("./routes/tag.route"));
 
 app.all("*", (req, res) => {
   // res.redirect("/404.html")
