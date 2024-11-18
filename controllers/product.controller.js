@@ -3,6 +3,7 @@ const {
   MONGOOSE_DUPLICATE_KEY,
   MONGOOSE_VALIDATION_ERROR,
   MONGOOSE_CAST_ERROR,
+  VARIABLE,
 } = require("../constants/models.constants");
 const Product = require("../model/product.model");
 const invalidFieldMessage = require("../utils/invalidFieldMessage");
@@ -10,6 +11,19 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiResponse = require("../utils/ApiResponse");
 const Category = require("../model/category.model");
 const Tag = require("../model/tag.model");
+const Attribute = require("../model/attribute.model");
+
+// Resolve categories/tags: can't use map because it doesn't wait and hence we get promise pending
+const resolveItems = async (items, model) => {
+  return await Promise.all(
+    items.split(",").map(async (item) => {
+      const existingItem = await model.findOne({ name: item });
+      return existingItem
+        ? existingItem._id
+        : (await model.create({ name: item }))._id;
+    })
+  );
+};
 
 const addAProduct = asyncHandler(async (req, res) => {
   try {
@@ -23,40 +37,26 @@ const addAProduct = asyncHandler(async (req, res) => {
       publishDate,
     } = req.body;
 
-    let { categories, tags } = req.body;
+    let { categories, tags, attributes } = req.body;
 
-    const attribute = productType === SIMPLE ? req.body.attribute : null;
+    if (productType === SIMPLE && attributes) {
+      return ApiResponse.validationError(
+        res,
+        "Simple products cannot have attributes",
+        { attributes: "Attributes are not allowed for simple products" },
+        400
+      );
+    }
 
     const thumbnail = req.files.thumbnail[0].filename;
     const gallery = req.files.gallery.map((file) => file.filename);
 
-    categories = categories.split(",");
-    tags = tags.split(",");
-
-    // Resolve categories: can't use map because it doesn't wait and hence we get promise pending
-    const addedCategories = await Promise.all(
-      categories.map(async (category) => {
-        let productCategory = await Category.findOne({ name: category });
-        if (!productCategory) {
-          productCategory = await Category.create({ name: category }); // Ensure await here
-        }
-        return productCategory._id;
-      })
-    );
-
-    // Resolve tags
-    const addedTags = await Promise.all(
-      tags.map(async (tag) => {
-        let productTag = await Tag.findOne({ name: tag });
-        if (!productTag) {
-          productTag = await Tag.create({ name: tag }); // Ensure await here
-        }
-        return productTag._id;
-      })
-    );
-
-    console.log(addedCategories);
-    console.log(addedTags);
+    const addedCategories = await resolveItems(categories, Category);
+    const addedTags = await resolveItems(tags, Tag);
+    const addedAttributes =
+      productType === VARIABLE
+        ? await resolveItems(attributes, Attribute)
+        : undefined;
 
     const product = await Product.create({
       name,
@@ -68,7 +68,7 @@ const addAProduct = asyncHandler(async (req, res) => {
       tags: addedTags,
       productStatus,
       publishDate,
-      attribute,
+      attributes: addedAttributes, // Save only if VARIABLE, otherwise undefined
       thumbnail,
       gallery,
     });
@@ -136,7 +136,6 @@ const updateAProduct = asyncHandler(async (req, res) => {
       "gallery",
     ];
 
-    // Filter only allowed fields
     const fieldsToUpdate = Object.keys(updates).reduce((acc, key) => {
       if (allowedUpdates.includes(key)) {
         acc[key] = updates[key];
@@ -144,23 +143,19 @@ const updateAProduct = asyncHandler(async (req, res) => {
       return acc;
     }, {});
 
-    // Check if product exists
     const product = await Product.findById(id);
     if (!product) {
       return ApiResponse.notFound(res, "Product not found", 404);
     }
 
-    // Process categories and tags
-    const resolveItems = async (items, model) => {
-      return await Promise.all(
-        items.split(",").map(async (item) => {
-          const existingItem = await model.findOne({ name: item });
-          return existingItem
-            ? existingItem._id
-            : (await model.create({ name: item }))._id;
-        })
+    if (product.productType === SIMPLE && req.body.attributes) {
+      return ApiResponse.validationError(
+        res,
+        "Simple products cannot have attributes",
+        { attributes: "Attributes are not allowed for simple products" },
+        400
       );
-    };
+    }
 
     if (categories) {
       fieldsToUpdate.categories = await resolveItems(categories, Category);
@@ -170,8 +165,8 @@ const updateAProduct = asyncHandler(async (req, res) => {
     }
 
     // Handle attributes for SIMPLE products
-    if (fieldsToUpdate.productType === SIMPLE) {
-      fieldsToUpdate.attributes = attributes || null;
+    if (fieldsToUpdate.productType === VARIABLE) {
+      fieldsToUpdate.attributes = await resolveItems(attributes, Attribute);
     }
 
     // Update the product

@@ -86,21 +86,6 @@ const productSchema = new mongoose.Schema(
           ref: "Variation",
         },
       ],
-      validate: {
-        validator: function (value) {
-          if (this.productType === SIMPLE && value.length > 0) {
-            return false; // Invalid if SIMPLE product has any variations
-          }
-          if (this.productType === VARIABLE && value.length < 1) {
-            return false; // Invalid if VARIABLE product has no variations
-          }
-          return true;
-        },
-        message: (props) =>
-          props.instance.productType === SIMPLE
-            ? "A SIMPLE product must not have any variations."
-            : "A VARIABLE product must have at least one variation.",
-      },
     },
     publishDate: {
       type: Date,
