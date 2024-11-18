@@ -17,6 +17,8 @@ const addressRegex =
 
 const pincodeRegex = /^[A-Za-z0-9\s-]{3,10}$/;
 
+const productNameRegex = /^[a-zA-Z0-9\s\-,:'./()&‑]+$/;
+
 module.exports = {
   emailRegex,
   usernameRegex,
@@ -26,4 +28,5 @@ module.exports = {
   addressRegex,
   cityRegex,
   pincodeRegex,
+  productNameRegex,
 };

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
 const {
   CATEGORY,
   TAG,
@@ -10,6 +11,7 @@ const {
   SIMPLE,
   VARIABLE,
 } = require("../constants/models.constants");
+const { productNameRegex } = require("../constants/regex.constants");
 
 const productSchema = new mongoose.Schema(
   {
@@ -17,30 +19,33 @@ const productSchema = new mongoose.Schema(
       type: String,
       trim: true,
       unique: true,
-      required: true,
+      match: [productNameRegex, "Product Name not in proper format"],
+      required: [true, "Product Name is required"],
     },
     slug: {
       type: String,
       trim: true,
-      required: true,
-      unique: true,
+      required: [true, "Product Slug is required"],
+      unique: [true, "Product slug must be unique"],
     },
     productType: {
       type: String,
       enum: [SIMPLE, VARIABLE],
-      required: true,
+      default: SIMPLE,
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Description is required"],
       trim: true,
+      minlength: [4, "Description must be at least 4 characters long"],
+      maxlength: [2048, "Description must be at most 2048 characters long"],
     },
     shortDescription: {
       type: String,
       trim: true,
-      required: true,
-      minlength: 4,
-      maxlength: 512,
+      required: [true, "Short description is required"],
+      minlength: [4, "Short description must be at least 4 characters long"],
+      maxlength: [512, "Short description must be at most 512 characters long"],
     },
     thumbnail: {
       type: String,

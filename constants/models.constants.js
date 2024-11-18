@@ -36,8 +36,8 @@ module.exports = {
   PUBLISHED: "PUBLISHED",
   DRAFT: "DRAFT",
 
-  SIMPLE: "simple",
-  VARIABLE: "variable",
+  SIMPLE: "SIMPLE",
+  VARIABLE: "VARIABLE",
 
   MONGOOSE_DUPLICATE_KEY: 11000,
   MONGOOSE_VALIDATION_ERROR: "ValidationError",

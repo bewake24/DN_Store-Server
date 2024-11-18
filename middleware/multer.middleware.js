@@ -7,7 +7,6 @@ const { validateUsername } = require("../utils/inputValidation/validators.js");
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
     const username = req.user?.username || validateUsername(req.body.username);
-    console.log(req.body);
 
     if (!username) {
       // Tell the multer to skip uploading the file
@@ -28,7 +27,6 @@ const storage = multer.diskStorage({
   },
   filename: function (_, file, cb) {
     const uniqueName = uuidv4() + path.extname(file.originalname);
-    console.log(file.fieldname);
     cb(null, file.fieldname + "-" + uniqueName);
   },
 });

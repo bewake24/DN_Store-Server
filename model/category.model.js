@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify"); // For automatic slug generation
+const slugify = require("slugify");
 const { CATEGORY } = require("../constants/models.constants");
 const { nameRegex } = require("../constants/regex.constants");
 
