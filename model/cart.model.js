@@ -9,7 +9,7 @@ const cartItemsSchema = new mongoose.Schema({
   quantity: {
     type: Number,
     default: 1,
-  }
+  },
 });
 
 const cartSchema = new mongoose.Schema(
@@ -23,6 +23,6 @@ const cartSchema = new mongoose.Schema(
   { timeStamps: true }
 );
 
-const Cart = mongoose.model(CART, cartSchema)
+const Cart = mongoose.model(CART, cartSchema);
 
 module.exports = Cart;

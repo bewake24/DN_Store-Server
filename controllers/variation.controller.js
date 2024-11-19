@@ -202,12 +202,14 @@ const updateAVariation = asyncHandler(async (req, res) => {
     ];
     const fieldsToUpdate = Object.keys(req.body).reduce((acc, key) => {
       if (allowedUpdates.includes(key)) {
-        acc[key] = updates[key];
+        acc[key] = req.body[key];
       }
       return acc;
     }, {});
 
-    const product = await Variation.findById(id);
+    const variation = await Variation.findById(id).select("productId");
+
+    const product = await Product.findById(variation.productId);
 
     if (!product) {
       return ApiResponse.notFound(res, "Product doesnot exist", 404);
