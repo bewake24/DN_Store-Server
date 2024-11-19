@@ -1,9 +1,11 @@
 const VARIATION = require("../constants/models.constants");
+const mongoose = require("mongoose");
 const variationSchema = new mongoose.Schema({
   attributes: [
     {
       name: { type: String, required: true },
       value: { type: String, required: true },
+      _id: false, // Disable the automatic _id for subdocuments
     },
   ],
   sku: {
@@ -22,9 +24,16 @@ const variationSchema = new mongoose.Schema({
     type: Number,
     default: -1, // -1 for unlimited stock
   },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
 });
 
-const Option = mongoose.model("variation", optionSchema);
+const Variation = mongoose.model("Variation", variationSchema);
+
+module.exports = Variation;
 
 // If stockQuantity === -1  => Stock quantity not specified
 //If stockQuantity === 0  => Item not in stock and can't be ordered by CUSTOMER

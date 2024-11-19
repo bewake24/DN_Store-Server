@@ -51,6 +51,7 @@ app.use("/api/v1/category", require("./routes/category.route"));
 app.use("/api/v1/tag", require("./routes/tag.route"));
 app.use("/api/v1/attribute", require("./routes/attribute.route"));
 app.use("/api/v1/product", require("./routes/product.routes"));
+app.use("/api/v1/variation", require("./routes/variation.route"));
 
 app.all("*", (req, res) => {
   // res.redirect("/404.html")
