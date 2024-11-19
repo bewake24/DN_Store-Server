@@ -4,6 +4,7 @@ const {
   MONGOOSE_VALIDATION_ERROR,
   MONGOOSE_CAST_ERROR,
   VARIABLE,
+  MONGOOSE_OBJECT_ID,
 } = require("../constants/models.constants");
 const Product = require("../model/product.model");
 const invalidFieldMessage = require("../utils/invalidFieldMessage");
@@ -196,9 +197,115 @@ const updateAProduct = asyncHandler(async (req, res) => {
   }
 });
 
+const updateProductThumbnail = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const thumbnail = req.file.filenane;
+
+    const product = Product.findByIdAndUpdate(
+      id,
+      { thumbnail },
+      { new: true, runValidators: true }
+    );
+
+    if (!product) {
+      return ApiResponse.notFound(res, "Product not found");
+    }
+
+    ApiResponse.success(res, "Thumbnail Updated SUccessfully", product, 201);
+  } catch (error) {
+    if (
+      error.name === MONGOOSE_CAST_ERROR &&
+      error.kind === MONGOOSE_OBJECT_ID
+    ) {
+      ApiResponse.validationError(
+        res,
+        "Thummbnail Update Failed",
+        { id: "Invalid productId provided" },
+        400
+      );
+    }
+    ApiResponse.error(res, "Thumbnail update failed", 500, error);
+  }
+});
+
+const updateProductGallery = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const gallery = req.files.gallery.map((file) => file.filename);
+
+    const product = Product.findByIdAndUpdate(
+      id,
+      { gallery },
+      { new: true, runValidators: true }
+    );
+
+    if (!product) {
+      return ApiResponse.notFound(res, "Product not found");
+    }
+
+    ApiResponse.success(res, "Gallery. Updated SUccessfully", product, 201);
+  } catch (error) {
+    if (
+      error.name === MONGOOSE_CAST_ERROR &&
+      error.kind === MONGOOSE_OBJECT_ID
+    ) {
+      ApiResponse.validationError(
+        res,
+        "Gallery Update Failed",
+        { id: "Invalid productId provided" },
+        400
+      );
+    }
+    ApiResponse.error(res, "Gallery update failed", 500, error);
+  }
+});
+
+const deleteAProduct = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findByIdAndDelete(id);
+
+    if (!product) {
+      ApiResponse.notFound(res, "Product not found");
+    }
+
+    ApiResponse.success(res, "Product deleted successfully", {}, 201);
+  } catch (error) {
+    if (
+      error.name === MONGOOSE_CAST_ERROR &&
+      error.kind === MONGOOSE_OBJECT_ID
+    ) {
+      ApiResponse.validationError(
+        res,
+        "Product deletion failed",
+        { id: "Invalid productId provided" },
+        400
+      );
+    }
+    ApiResponse.error(res, "Product deletion failed", 500, error);
+  }
+});
+
 module.exports = {
   addAProduct,
   getAllProducts,
   getAProduct,
   updateAProduct,
+  updateProductThumbnail,
+  updateProductGallery,
+  deleteAProduct,
+  // updateManyProducts
+  // deleteManyProducts
+  // getProductByCategory
+  // getProductByTag
+  // getProductByAttribute
+  // getProductByslug
+  // getProductByStatus
+  // getProductByStock
+  // getProductInDateRange
+  // getProductInPriceRange
 };

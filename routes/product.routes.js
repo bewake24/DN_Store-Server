@@ -4,6 +4,7 @@ const {
   getAllProducts,
   getAProduct,
   updateAProduct,
+  deleteAProduct,
 } = require("../controllers/product.controller");
 const upload = require("../middleware/multer.middleware");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
@@ -30,5 +31,9 @@ router
     verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
     updateAProduct
   );
+
+router
+  .route("/delete-a-product/:id")
+  .delete(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), deleteAProduct);
 
 module.exports = router;

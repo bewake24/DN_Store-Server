@@ -142,7 +142,11 @@ const deleteAnAttribute = asyncHandler(async (req, res) => {
     ) {
       return ApiResponse.validationError(
         res,
-        "Invalid attribute Fromat provided"
+        "Attribute deletion failed",
+        {
+          id: "Invalid attribute ID provided",
+        },
+        400
       );
     }
     ApiResponse.error(res, "Error while deleting attribute", 500, error);
