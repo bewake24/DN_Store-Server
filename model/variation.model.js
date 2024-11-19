@@ -5,7 +5,7 @@ const variationSchema = new mongoose.Schema({
     {
       name: { type: String, required: true },
       value: { type: String, required: true },
-      _id: false, // Disable the automatic _id for subdocuments
+      _id: false,
     },
   ],
   sku: {
