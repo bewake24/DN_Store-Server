@@ -2,16 +2,18 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const helmet = require("helmet");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const { logger } = require("./middleware/logEvents.middleware");
 // const errorHandler = require('./middleware/errorHandler')
 const corsOptions = require("./config/corsOptions");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
 const connectDB = require("./config/dbConn");
 const restrictDirectoryAccess = require("./middleware/uploads.middleware");
 const expressSession = require("./middleware/espressSession.middleware");
 const csrfProtection = require("./middleware/csrf.middleware");
-const helmet = require("helmet");
+const limiter = require("./middleware/rateLimit.middleware");
+
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -40,6 +42,9 @@ app.use(expressSession);
 
 // Apply CSRF middleware (after session middleware)
 app.use(csrfProtection);
+
+// limit the no of api calls globally
+app.use(limiter);
 
 // Middleware to restrict access to the directory itself
 app.use("/api/v1/uploads", restrictDirectoryAccess);
