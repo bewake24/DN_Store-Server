@@ -6,11 +6,12 @@ const { logger } = require("./middleware/logEvents.middleware");
 // const errorHandler = require('./middleware/errorHandler')
 const corsOptions = require("./config/corsOptions");
 const mongoose = require("mongoose");
-// const session = require("express-session");
-// const csrf = require("lusca").csrf;
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/dbConn");
 const restrictDirectoryAccess = require("./middleware/uploads.middleware");
+const expressSession = require("./middleware/espressSession.middleware");
+const csrfProtection = require("./middleware/csrf.middleware");
+const helmet = require("helmet");
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -23,6 +24,8 @@ app.use(logger);
 //Cross Origin Resource Sharing
 app.use(cors(corsOptions));
 
+app.use(helmet()); // Add security headers to HTTP responses
+
 // Middleware to parse x-www-form-urlencoded data
 app.use(express.urlencoded({ extended: true, limit: process.env.REQ_LIMIT }));
 
@@ -31,6 +34,12 @@ app.use(express.json());
 
 //middleware for cookies
 app.use(cookieParser());
+
+// Apply session middleware
+app.use(expressSession);
+
+// Apply CSRF middleware (after session middleware)
+app.use(csrfProtection);
 
 // Middleware to restrict access to the directory itself
 app.use("/api/v1/uploads", restrictDirectoryAccess);
