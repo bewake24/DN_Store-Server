@@ -11,6 +11,8 @@ const {
   MONGOOSE_DUPLICATE_KEY,
 } = require("../constants/models.constants");
 const invalidFieldMessage = require("../utils/invalidFieldMessage");
+const { validateUsername } = require("../utils/inputValidation/validators");
+const UPLOAD_ROOT = path.resolve(__dirname, "..", "public", "uploads");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -268,6 +270,16 @@ const updateAvatar = asyncHandler(async (req, res) => {
     ApiResponse.notFound(res, "User not loggedin or found");
   }
 
+  const validUsername = validateUsername(user.username);
+  if (!validUsername) {
+    ApiResponse.validationError(
+      res,
+      "This should not happen. Avatar update failed.",
+      { username: "Invalid username taken from cookies" },
+      400
+    );
+  }
+
   if (!req.file) {
     ApiResponse.validationError(
       res,
@@ -279,13 +291,8 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
   //Find old avatar from DB
   let oldAvatarPath = "";
-  const AVATAR_ROOT = path.resolve(__dirname, "..", "public", "uploads");
   if (user.avatar) {
-    oldAvatarPath = path.resolve(
-      AVATAR_ROOT,
-      user.username,
-      user.avatar
-    );
+    oldAvatarPath = path.resolve(UPLOAD_ROOT, user.avatar);
   }
 
   // Save new Avatar to DB
@@ -293,7 +300,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   await user.save();
 
   // Delete old avatar from server
-  if (oldAvatarPath.startsWith(AVATAR_ROOT) && fs.existsSync(oldAvatarPath)) {
+  if (fs.existsSync(oldAvatarPath)) {
     fs.unlink(oldAvatarPath, (err) => {
       if (err) {
         ApiResponse.error(res, "Failed to delete old avatar", 500, err);
@@ -330,26 +337,6 @@ const updateUsername = asyncHandler(async (req, res) => {
       runValidators: true, // Run validation on update
     }
   ).lean();
-  console.log("User updated successfully");
-
-  // Rename folder for user according to the new username
-  const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
-  console.log(oldPath);
-  const newPath = path.join(
-    __dirname,
-    "..",
-    "public",
-    "uploads",
-    incomingUsername
-  );
-
-  fs.rename(oldPath, newPath, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Successfully renamed the directory.");
-    }
-  });
 
   ApiResponse.success(
     res,
@@ -398,5 +385,3 @@ module.exports = {
   getAllUsers,
   getUsersByRole,
 };
-
-// Is it necessary to check for allowed updates while updating user?
