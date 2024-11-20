@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { PRODUCT, USER, CART } = require("../constants/models.constants");
 
 const cartItemsSchema = new mongoose.Schema({
-  productId: {
+  productVariationId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: PRODUCT,
   },
@@ -10,6 +10,7 @@ const cartItemsSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  _id: false,
 });
 
 const cartSchema = new mongoose.Schema(
