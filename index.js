@@ -40,11 +40,8 @@ app.use(cookieParser());
 // Apply session middleware
 app.use(expressSession);
 
-// Apply CSRF middleware (after session middleware)
+// Apply CSRF middleware (after express session)
 app.use(csrfProtection);
-
-// limit the no of api calls globally
-app.use(limiter);
 
 // Middleware to restrict access to the directory itself
 app.use("/api/v1/uploads", restrictDirectoryAccess);
