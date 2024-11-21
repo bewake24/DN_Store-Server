@@ -12,7 +12,6 @@ const connectDB = require("./config/dbConn");
 const restrictDirectoryAccess = require("./middleware/uploads.middleware");
 const expressSession = require("./middleware/espressSession.middleware");
 const csrfProtection = require("./middleware/csrf.middleware");
-const limiter = require("./middleware/rateLimit.middleware");
 
 const PORT = process.env.PORT || 3000;
 
@@ -52,6 +51,10 @@ app.use(
   "/api/v1/uploads",
   express.static(path.join(__dirname, "public/uploads"))
 );
+
+app.get("/api/v1/csrf-token", csrfProtection, (req, res) => {
+  res.status(200).json({ csrfToken: req.csrfToken() });
+});
 
 //routes
 app.use("/api/v1", require("./routes/root"));

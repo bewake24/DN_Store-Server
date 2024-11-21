@@ -86,6 +86,7 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
+  console.log(req.csrfToken());
   // Get data vaidated data from frontend
   let { usernameOrEmail, password } = req.body;
 
@@ -124,17 +125,22 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return ApiResponse.success(
     res,
+    "User logged In Successfully",
     {
       user: rolesObjectToArray(loggedInUser),
       accessToken,
       refreshToken,
+      csrfToken: req.csrfToken(),
     },
-    "User logged In Successfully",
     200
   );
 });
 
 const logout = asyncHandler(async (req, res) => {
+  if (!req.user?._id) {
+    ApiResponse.notFound(res, "User not loggedin");
+  }
+
   // Remove remove user credentials from Db
   await User.findByIdAndUpdate(
     req.user._id,
@@ -158,7 +164,12 @@ const logout = asyncHandler(async (req, res) => {
 
   //Send response back
 
-  ApiResponse.success(res, "User logged out successfully", {}, 200);
+  ApiResponse.success(
+    res,
+    "User logged out successfully",
+    { csrfToken: req.csrfToken() },
+    200
+  );
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -201,11 +212,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     ApiResponse.success(
       res,
+      "New Tokens generated succesfully",
       {
         accessToken,
         refreshToken: newRefreshToken,
+        csrfToken: req.csrfToken(),
       },
-      "New Tokens generated succesfully",
       200
     );
   } catch (error) {
@@ -238,8 +250,8 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     console.log("User updated successfully");
     ApiResponse.success(
       res,
-      rolesObjectToArray(updatedUser),
       "User updated successfully",
+      { user: rolesObjectToArray(updatedUser), csrfToken: req.csrfToken() },
       200
     );
   } catch (err) {
@@ -307,7 +319,12 @@ const updateAvatar = asyncHandler(async (req, res) => {
       }
     });
   }
-  ApiResponse.success(res, user, "User avatar updated successfully", 200);
+  ApiResponse.success(
+    res,
+    "User avatar updated successfully",
+    { user: rolesObjectToArray(user), csrfToken: req.csrfToken() },
+    200
+  );
 });
 
 const updateUsername = asyncHandler(async (req, res) => {
@@ -341,7 +358,7 @@ const updateUsername = asyncHandler(async (req, res) => {
   ApiResponse.success(
     res,
     "User updated successfully",
-    rolesObjectToArray(user),
+    { user: rolesObjectToArray(user), csrfToken: req.csrfToken() },
     200
   );
 });
