@@ -32,15 +32,19 @@ router.route("/login").post(limiter("15m", 100), csrfProtection, loginUser);
 router
   .route("/logout")
   .post(limiter("15m", 100), csrfProtection, verifyJWT, logout);
+
 router
   .route("/refresh-access-token")
   .get(limiter("15m", 100), verifyJWT, refreshAccessToken);
+
 router
   .route("/update-user")
   .patch(limiter("15m", 100), csrfProtection, verifyJWT, updateUserInfo);
+
 router
   .route("/update-username")
   .patch(limiter("15m", 100), csrfProtection, verifyJWT, updateUsername);
+
 router
   .route("/update-avatar")
   .post(
@@ -50,6 +54,7 @@ router
     upload.single("avatar"),
     updateAvatar
   );
+
 router
   .route("/get-all-users")
   .get(
@@ -58,6 +63,7 @@ router
     verifyRoles(ROLES_LIST.ADMIN),
     getAllUsers
   );
+
 router
   .route("/get-users")
   .get(

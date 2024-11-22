@@ -11,8 +11,14 @@ const verifyRoles = require("../middleware/verifyRoles.middleware");
 const limiter = require("../middleware/rateLimit.middleware");
 const csrfProtection = require("../middleware/csrf.middleware");
 
-router.route("/create-a-cart").post(verifyJWT, createACart);
-router.route("/add-items-to-cart").patch(verifyJWT, addItemsToCart);
+router
+  .route("/create-a-cart")
+  .post(limiter("15m", 100), csrfProtection, verifyJWT, createACart);
+
+router
+  .route("/add-items-to-cart")
+  .patch(limiter("15m", 100), csrfProtection, verifyJWT, addItemsToCart);
+
 router
   .route("/get-all-carts")
   .get(

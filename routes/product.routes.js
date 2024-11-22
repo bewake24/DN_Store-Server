@@ -25,8 +25,9 @@ router
     addAProduct
   );
 
-router.route("/get-all-products").get(getAllProducts);
-router.route("/get-a-product/:id").get(getAProduct);
+router.route("/get-all-products").get(limiter("15m", 100), getAllProducts);
+
+router.route("/get-a-product/:id").get(limiter("15m", 100), getAProduct);
 
 router
   .route("/update-a-product/:id")
