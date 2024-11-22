@@ -2,6 +2,8 @@ const router = require("express").Router();
 const verifyJWT = require("../middleware/verifyJWT.middleware");
 const verifyRoles = require("../middleware/verifyRoles.middleware");
 const ROLES_LIST = require("../config/rolesList");
+const csrfProtection = require("../middleware/csrf.middleware");
+const limiter = require("../middleware/rateLimit.middleware");
 const {
   createAttribute,
   getAllAttributes,
@@ -10,39 +12,53 @@ const {
   deleteAnAttribute,
 } = require("../controllers/attribute.controller");
 
-router.post(
-  "/create-attribute",
-  verifyJWT,
-  verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
-  createAttribute
-);
+router
+  .route("/create-attribute")
+  .post(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    createAttribute
+  );
 
-router.get(
-  "/get-all-attributes",
-  verifyJWT,
-  verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
-  getAllAttributes
-);
+router
+  .route("/get-all-attributes")
+  .get(
+    limiter("15m", 100),
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    getAllAttributes
+  );
 
-router.get(
-  "/get-an-attribute/:id",
-  verifyJWT,
-  verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
-  getAnAttribute
-);
+router
+  .route("/get-an-attribute/:id")
+  .get(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    getAnAttribute
+  );
 
-router.patch(
-  "/update-an-attribute/:id",
-  verifyJWT,
-  verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
-  updateAnAttribute
-);
+router
+  .route("/update-an-attribute")
+  .patch(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    updateAnAttribute
+  );
 
-router.delete(
-  "/delete-an-attribute/:id",
-  verifyJWT,
-  verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
-  deleteAnAttribute
-);
+router
+  .route("/delete-an-attribute/:id")
+  .delete(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    deleteAnAttribute
+  );
 
 module.exports = router;

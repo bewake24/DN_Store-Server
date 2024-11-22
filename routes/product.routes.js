@@ -9,12 +9,16 @@ const {
 const upload = require("../middleware/multer.middleware");
 const verifyJWT = require("../middleware/verifyJWT.middleware");
 const verifyRoles = require("../middleware/verifyRoles.middleware");
+const limiter = require("../middleware/rateLimit.middleware");
+const csrfProtection = require("../middleware/csrf.middleware");
 
 const router = require("express").Router();
 
 router
   .route("/add-a-product")
   .post(
+    limiter("15m", 100),
+    csrfProtection,
     verifyJWT,
     verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
     upload.fields([{ name: "thumbnail", maxCount: 1 }, { name: "gallery" }]),
@@ -27,6 +31,8 @@ router.route("/get-a-product/:id").get(getAProduct);
 router
   .route("/update-a-product/:id")
   .patch(
+    limiter("15m", 100),
+    csrfProtection,
     verifyJWT,
     verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
     updateAProduct
@@ -34,6 +40,12 @@ router
 
 router
   .route("/delete-a-product/:id")
-  .delete(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), deleteAProduct);
+  .delete(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN),
+    deleteAProduct
+  );
 
 module.exports = router;

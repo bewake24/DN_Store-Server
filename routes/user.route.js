@@ -18,21 +18,52 @@ const csrfProtection = require("../middleware/csrf.middleware");
 
 const router = require("express").Router();
 
-router.route("/register").post(upload.single("avatar"), registerUser);
+router
+  .route("/register")
+  .post(
+    limiter("15m", 100),
+    csrfProtection,
+    upload.single("avatar"),
+    registerUser
+  );
 router.route("/login").post(limiter("15m", 100), csrfProtection, loginUser);
 
 //Secured Routes
-router.route("/logout").post(limiter("15m", 100), verifyJWT, logout);
-router.route("/refresh-access-token").get(verifyJWT, refreshAccessToken);
-router.route("/update-user").patch(verifyJWT, updateUserInfo);
-router.route("/update-username").patch(verifyJWT, updateUsername);
+router
+  .route("/logout")
+  .post(limiter("15m", 100), csrfProtection, verifyJWT, logout);
+router
+  .route("/refresh-access-token")
+  .get(limiter("15m", 100), verifyJWT, refreshAccessToken);
+router
+  .route("/update-user")
+  .patch(limiter("15m", 100), csrfProtection, verifyJWT, updateUserInfo);
+router
+  .route("/update-username")
+  .patch(limiter("15m", 100), csrfProtection, verifyJWT, updateUsername);
 router
   .route("/update-avatar")
-  .post(verifyJWT, upload.single("avatar"), updateAvatar);
+  .post(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    upload.single("avatar"),
+    updateAvatar
+  );
 router
   .route("/get-all-users")
-  .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getAllUsers);
+  .get(
+    limiter("15m", 100),
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN),
+    getAllUsers
+  );
 router
   .route("/get-users")
-  .get(verifyJWT, verifyRoles(ROLES_LIST.ADMIN), getUsersByRole);
+  .get(
+    limiter("15m", 100),
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN),
+    getUsersByRole
+  );
 module.exports = router;
