@@ -10,11 +10,11 @@ const assignRoleToUser = asyncHandler(async (req, res) => {
   let user = await User.findById(req.params.id).select("roles name");
 
   if (!user) {
-    ApiResponse.notFound(res, "User not found");
+    return ApiResponse.notFound(res, "User not found");
   }
 
   if (!req.body.roles) {
-    ApiResponse.validationError(
+    return ApiResponse.validationError(
       res,
       "Roles field is empty",
       { roles: "Roles field is required" },
@@ -34,7 +34,7 @@ const assignRoleToUser = asyncHandler(async (req, res) => {
     validRoles.includes(role)
   );
   if (!areAllRolesValid) {
-    ApiResponse.validationError(
+    return ApiResponse.validationError(
       res,
       "Roles contains some invalid roles",
       { roles: "All roles values must be valid" },
@@ -51,7 +51,10 @@ const assignRoleToUser = asyncHandler(async (req, res) => {
   ApiResponse.success(
     res,
     "User updated successfully",
-    rolesObjectToArray(JSON.parse(JSON.stringify(user))),
+    {
+      user: rolesObjectToArray(JSON.parse(JSON.stringify(user))),
+      csrfToken: req.csrfToken(),
+    },
     200
   );
 });
@@ -60,11 +63,11 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
   let user = await User.findById(req.params.id).select("roles name");
 
   if (!user) {
-    ApiResponse.notFound(res, "User not found");
+    return ApiResponse.notFound(res, "User not found");
   }
 
   if (!req.body.roles) {
-    ApiResponse.validationError(
+    return ApiResponse.validationError(
       res,
       "Roles field is empty",
       { roles: "Roles field is required" },
@@ -83,7 +86,7 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
     validRoles.includes(role)
   );
   if (!areAllRolesValid) {
-    ApiResponse.validationError(
+    return ApiResponse.validationError(
       res,
       "Roles contains some invalid roles",
       { roles: "All roles values must be valid" },
@@ -92,7 +95,7 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
   }
 
   if (rolesToRevoke.includes(CUSTOMER)) {
-    ApiResponse.forbidden(
+    return ApiResponse.forbidden(
       res,
       "Revoke request contains default user role, can't remove this. If you want user to not access this platform kindly change the status of user to Blocked."
     );
@@ -111,7 +114,10 @@ const revokeRoleFromUser = asyncHandler(async (req, res) => {
   ApiResponse.success(
     res,
     "User updated successfully",
-    rolesObjectToArray(JSON.parse(JSON.stringify(user))),
+    {
+      user: rolesObjectToArray(JSON.parse(JSON.stringify(user))),
+      csrfToken: req.csrfToken(),
+    },
     200
   );
 });

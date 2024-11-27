@@ -59,7 +59,12 @@ const addAnAddress = asyncHandler(async (req, res) => {
 
     console.log(`Address added successfully to the user ${userId}`);
 
-    ApiResponse.success(res, "Address added successfully", newAddress, 201);
+    ApiResponse.success(
+      res,
+      "Address added successfully",
+      { address: newAddress, csrfToken: req.csrfToken() },
+      201
+    );
   } catch (err) {
     if (err.name === MONGOOSE_VALIDATION_ERROR) {
       return ApiResponse.validationError(
@@ -93,13 +98,13 @@ const updateAnAddress = asyncHandler(async (req, res) => {
 
     const addressUser = await Address.findById(addressId).select("userId");
     if (!addressUser) {
-      ApiResponse.notFound(
+      return ApiResponse.notFound(
         res,
         "Invalid address ID provided, Address not found"
       );
     }
     if (addressUser.userId.toString() !== req.user._id.toString()) {
-      ApiResponse.forbidden(
+      return ApiResponse.forbidden(
         res,
         "Address doesn't belongs to loggedin user and hence can't update the address"
       );
@@ -121,7 +126,12 @@ const updateAnAddress = asyncHandler(async (req, res) => {
     });
     console.log("Address updated successfully");
 
-    ApiResponse.success(res, "Address updated successfully", address, 200);
+    ApiResponse.success(
+      res,
+      "Address updated successfully",
+      { address, csrfToken: req.csrfToken() },
+      200
+    );
   } catch (err) {
     if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
       return ApiResponse.validationError(
@@ -149,14 +159,14 @@ const deleteAnAddress = asyncHandler(async (req, res) => {
     const addressUser = await Address.findById(addressId).select("userId");
 
     if (!addressUser) {
-      ApiResponse.notFound(
+      return ApiResponse.notFound(
         res,
         "Invalid address ID provided, Address not found"
       );
     }
 
     if (addressUser.userId.toString() !== req.user._id.toString()) {
-      ApiResponse.forbidden(
+      return ApiResponse.forbidden(
         res,
         "Address doesn't belongs to loggedin user and hence can't delete the address"
       );
@@ -164,7 +174,12 @@ const deleteAnAddress = asyncHandler(async (req, res) => {
 
     const address = await Address.findByIdAndDelete(addressId);
     console.log("Address deleted successfully");
-    ApiResponse.success(res, "Address deleted successfully", address, 200);
+    ApiResponse.success(
+      res,
+      "Address deleted successfully",
+      { csrfToken: req.csrfToken() },
+      200
+    );
   } catch (err) {
     if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
       return ApiResponse.validationError(

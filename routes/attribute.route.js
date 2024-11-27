@@ -42,7 +42,7 @@ router
   );
 
 router
-  .route("/update-an-attribute")
+  .route("/update-an-attribute/:id")
   .patch(
     limiter("15m", 100),
     csrfProtection,

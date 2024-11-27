@@ -12,12 +12,16 @@ const asyncHandler = require("../utils/asyncHandler");
 const createCategory = asyncHandler(async (req, res) => {
   try {
     let thumbnail;
-    console.log(req.file);
     if (req.file) {
       thumbnail = req.file.filename;
     }
     const category = await Category.create({ ...req.body, thumbnail });
-    ApiResponse.success(res, "Category created successfully", category, 201);
+    ApiResponse.success(
+      res,
+      "Category created successfully",
+      { category, csrfToken: req.csrfToken() },
+      201
+    );
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
       return ApiResponse.error(res, invalidFieldMessage(error), 400);
@@ -46,17 +50,14 @@ const getCategories = asyncHandler(async (req, res) => {
 
 const deleteCategory = asyncHandler(async (req, res) => {
   try {
-    console.log(req.params);
     const category = await Category.findOne(req.params);
 
     if (!category) {
       return ApiResponse.notFound(res, "Category not found", 404);
     }
 
-    // Use async/await with Promise.all to handle product updates
     const products = await Product.find({ categories: category._id });
 
-    // Remove the category reference from each product
     await Promise.all(
       products.map(async (product) => {
         product.category = product.category.filter((c) => c !== category._id);
@@ -67,7 +68,12 @@ const deleteCategory = asyncHandler(async (req, res) => {
     // Delete the category
     await category.deleteOne();
 
-    ApiResponse.success(res, "Category deleted successfully", {});
+    ApiResponse.success(
+      res,
+      "Category deleted successfully",
+      { csrfToken: req.csrfToken() },
+      200
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
@@ -113,7 +119,12 @@ const updateCategory = asyncHandler(async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    ApiResponse.success(res, "Category updated successfully", updatedCategory);
+    ApiResponse.success(
+      res,
+      "Category updated successfully",
+      { category: updatedCategory, csrfToken: req.csrfToken() },
+      200
+    );
   } catch (error) {
     ApiResponse.error(res, "Error while updating category", 500);
   }

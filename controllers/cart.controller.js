@@ -90,7 +90,12 @@ const createACart = asyncHandler(async (req, res) => {
     }
     const cart = await Cart.create({ customerId: userId, cartItems });
 
-    ApiResponse.success(res, "Cart created successfully", cart, 200);
+    ApiResponse.success(
+      res,
+      "Cart created successfully",
+      { cart, csrfTolken: req.csrfToken() },
+      200
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
@@ -144,7 +149,12 @@ const addItemsToCart = asyncHandler(async (req, res) => {
       { $set: { cartItems: mergeCartItems(cart.cartItems, cartItems) } },
       { new: true, runValidators: true }
     );
-    ApiResponse.success(res, "Cart updated successfully", updatedCart, 200);
+    ApiResponse.success(
+      res,
+      "Cart updated successfully",
+      { cart: updatedCart, csrfTolken: req.csrfToken() },
+      200
+    );
   } catch (error) {
     ApiResponse.error(res, "Error while updating cart", 500, error);
   }

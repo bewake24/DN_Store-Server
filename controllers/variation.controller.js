@@ -89,12 +89,11 @@ const validateAttributes = (productAttributes, variationAttributes) => {
 };
 
 const createVariation = async (res, variationData) => {
-  console.log("creating variation");
   const variation = await Variation.create(variationData);
   return ApiResponse.success(
     res,
     "Variation added successfully",
-    variation,
+    { variation, csrfToken: req.csrfToken() },
     201
   );
 };
@@ -209,6 +208,10 @@ const updateAVariation = asyncHandler(async (req, res) => {
 
     const variation = await Variation.findById(id).select("productId");
 
+    if (!variation) {
+      return ApiResponse.notFound(res, "Variation doesnot exist", 404);
+    }
+
     const product = await Product.findById(variation.productId);
 
     if (!product) {
@@ -248,7 +251,7 @@ const updateAVariation = asyncHandler(async (req, res) => {
       return ApiResponse.success(
         res,
         "Variation updated successfully",
-        updatedVariation,
+        { variation: updatedVariation, csrfToken: req.csrfToken() },
         200
       );
     }
@@ -290,7 +293,7 @@ const updateAVariation = asyncHandler(async (req, res) => {
       return ApiResponse.success(
         res,
         "Variation updated successfully",
-        updatedVariation,
+        { variation: updatedVariation, csrfToken: req.csrfToken() },
         200
       );
     }
@@ -335,7 +338,12 @@ const deleteAVariation = asyncHandler(async (req, res) => {
     if (!deletedVariation) {
       return ApiResponse.notFound(res, "Variation doesnot exist", 404);
     }
-    return ApiResponse.success(res, "Variation deleted successfully", {}, 200);
+    return ApiResponse.success(
+      res,
+      "Variation deleted successfully",
+      { csrfToken: req.csrfToken() },
+      200
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
@@ -361,7 +369,7 @@ const deleteAllVariationsOfAProduct = asyncHandler(async (req, res) => {
     return ApiResponse.success(
       res,
       "Variations deleted successfully",
-      deletedVariations,
+      { csrfToken: req.csrfToken() },
       200
     );
   } catch (error) {

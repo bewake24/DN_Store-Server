@@ -61,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     ApiResponse.success(
       res,
       "User added successfully",
-      rolesObjectToArray(createdUser),
+      { user: rolesObjectToArray(createdUser), csrfToken: req.csrfToken() },
       201
     );
   } catch (err) {
@@ -86,8 +86,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  console.log(req.csrfToken());
-  // Get data vaidated data from frontend
   let { usernameOrEmail, password } = req.body;
 
   // Find user

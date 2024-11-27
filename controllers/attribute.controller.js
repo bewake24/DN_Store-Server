@@ -8,7 +8,6 @@ const {
   MONGOOSE_CAST_ERROR,
   MONGOOSE_OBJECT_ID,
 } = require("../constants/models.constants");
-const { get } = require("mongoose");
 
 const createAttribute = asyncHandler(async (req, res) => {
   try {
@@ -16,7 +15,10 @@ const createAttribute = asyncHandler(async (req, res) => {
     values = values.split(",");
     const attribute = await Attribute.create({ ...req.body, values });
 
-    ApiResponse.success(res, "Attribute created successfully", attribute);
+    ApiResponse.success(res, "Attribute created successfully", {
+      attribute,
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
       return ApiResponse.validationError(
@@ -97,7 +99,11 @@ const updateAnAttribute = asyncHandler(async (req, res) => {
     ApiResponse.success(
       res,
       "Attribute updated successfully",
-      updatedAttribute
+      {
+        attribute: updatedAttribute,
+        csrfToken: req.csrfToken(),
+      },
+      200
     );
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
@@ -134,7 +140,9 @@ const deleteAnAttribute = asyncHandler(async (req, res) => {
       return ApiResponse.notFound(res, "Attribute not found", 404);
     }
     await Attribute.findByIdAndDelete(id);
-    ApiResponse.success(res, "Attribute deleted successfully");
+    ApiResponse.success(res, "Attribute deleted successfully", {
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
