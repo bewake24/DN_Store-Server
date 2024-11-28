@@ -205,9 +205,18 @@ const updateProductThumbnail = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const thumbnail = req.file.filenane;
+    const thumbnail = req.file.filename;
 
-    const product = Product.findByIdAndUpdate(
+    if (typeof thumbnail !== "string") {
+      return ApiResponse.validationError(
+        res,
+        "Invalid input data of thumbnail",
+        {},
+        400
+      );
+    }
+
+    const product = await Product.findByIdAndUpdate(
       id,
       { thumbnail },
       { new: true, runValidators: true }
@@ -219,7 +228,7 @@ const updateProductThumbnail = asyncHandler(async (req, res) => {
 
     ApiResponse.success(
       res,
-      "Thumbnail Updated SUccessfully",
+      "Thumbnail Updated Successfully",
       { product, csrfToken: req.csrfToken() },
       201
     );
@@ -243,9 +252,9 @@ const updateProductGallery = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const gallery = req.files.gallery.map((file) => file.filename);
+    const gallery = req.files.map((file) => file.filename);
 
-    const product = Product.findByIdAndUpdate(
+    const product = await Product.findByIdAndUpdate(
       id,
       { gallery },
       { new: true, runValidators: true }

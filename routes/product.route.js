@@ -4,6 +4,8 @@ const {
   getAllProducts,
   getAProduct,
   updateAProduct,
+  updateProductThumbnail,
+  updateProductGallery,
   deleteAProduct,
 } = require("../controllers/product.controller");
 const upload = require("../middleware/multer.middleware");
@@ -37,6 +39,28 @@ router
     verifyJWT,
     verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
     updateAProduct
+  );
+
+router
+  .route("/update-product-thumbnail/:id")
+  .patch(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    upload.single("thumbnail"),
+    updateProductThumbnail
+  );
+
+router
+  .route("/update-product-gallery/:id")
+  .patch(
+    limiter("15m", 100),
+    csrfProtection,
+    verifyJWT,
+    verifyRoles(ROLES_LIST.ADMIN, ROLES_LIST.MANAGER),
+    upload.array("gallery", 10),
+    updateProductGallery
   );
 
 router

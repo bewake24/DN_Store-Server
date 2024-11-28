@@ -8,6 +8,7 @@ const Category = require("../model/category.model");
 const Product = require("../model/product.model");
 const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
+const invalidFieldMessage = require("../utils/invalidFieldMessage");
 
 const createCategory = asyncHandler(async (req, res) => {
   try {
@@ -88,13 +89,27 @@ const deleteCategory = asyncHandler(async (req, res) => {
 const updateCategory = asyncHandler(async (req, res) => {
   try {
     const { name, slug, isActive } = req.body;
+
+    const isProductActive =
+      isActive === "true" ? true : isActive === "false" ? false : isActive;
+    if (
+      typeof name !== "string" ||
+      typeof slug !== "string" ||
+      typeof isProductActive !== "boolean"
+    ) {
+      return ApiResponse.validationError(res, "Invalid input data", {}, 400);
+    }
     let thumbnail;
     if (req.file) {
       thumbnail = req.file.filename;
     }
-    const category = await Category.find(req.params, {
-      new: true,
-    });
+    const category = await Category.findOne({ slug: req.params.slug }).select(
+      "_id"
+    );
+
+    if (!category) {
+      return ApiResponse.notFound(res, "Category not found", 404);
+    }
 
     if (name) {
       // Can we use pre save hooks to save update products category name instead of doing this here.
@@ -108,8 +123,8 @@ const updateCategory = asyncHandler(async (req, res) => {
       });
     }
 
-    const updatedCategory = await Category.findOneAndUpdate(
-      req.params,
+    const updatedCategory = await Category.findByIdAndUpdate(
+      category._id,
       {
         name,
         slug,
