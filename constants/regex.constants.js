@@ -10,7 +10,7 @@ const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
 const phoneRegex = /^\d{10}$/;
 
 const cityRegex =
-  /^[a-zA-Z\u0080-\u024F]+(?:[.\-'\s]*[a-zA-Z\u0080-\u024F]+)*$/;
+  /^[a-zA-Z\u0080-\u024F]+(?:[.\-'\s][a-zA-Z\u0080-\u024F]+)*$/;
 
 const addressRegex = /^(\d+\s)?[A-Za-z0-9\s,.-]+$/;
 
