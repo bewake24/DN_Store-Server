@@ -11,7 +11,13 @@ const {
 } = require("../constants/models.constants");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { emailRegex, phoneRegex, usernameRegex, passwordRegex, nameRegex} = require("../constants/regex.constants");
+const {
+  emailRegex,
+  phoneRegex,
+  usernameRegex,
+  passwordRegex,
+  nameRegex,
+} = require("../constants/regex.constants");
 const ROLES_LIST = require("../config/rolesList");
 
 const userSchema = new mongoose.Schema(
@@ -36,7 +42,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       trim: true,
-      match : [nameRegex, "Name not in proper format"],
+      match: [nameRegex, "Name not in proper format"],
       required: [true, "Name is required"],
     },
     avatar: String, //Save Images to a seperate folder and store the link of the image to database
@@ -79,7 +85,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre("validate", function(next){
+userSchema.pre("validate", function (next) {
   if (this.isModified("password") && !passwordRegex.test(this.password)) {
     this.invalidate(
       "password",
@@ -87,7 +93,7 @@ userSchema.pre("validate", function(next){
     );
   }
   next();
-})
+});
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
@@ -130,11 +136,3 @@ userSchema.methods.rolesObjectToArray = function () {
 const User = mongoose.model(USER, userSchema);
 
 module.exports = User;
-
-
-/*
-  put regex in the model.
-  remove validators from the code.
-  validate directly while saving in the DB. 
-
-*/

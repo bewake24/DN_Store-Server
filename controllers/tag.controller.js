@@ -13,7 +13,10 @@ const createTag = async (req, res) => {
 
     const tag = await Tag.create({ name });
 
-    ApiResponse.success(res, "Tag created successfully", tag);
+    ApiResponse.success(res, "Tag created successfully", {
+      tag,
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (error.code === MONGOOSE_DUPLICATE_KEY) {
       return ApiResponse.conflict(res, "Tag already exists", 409);
@@ -69,7 +72,10 @@ const updateTag = async (req, res) => {
     tag.name = name || tag.name;
     await tag.save();
 
-    ApiResponse.success(res, "Tag updated successfully", tag);
+    ApiResponse.success(res, "Tag updated successfully", {
+      tag,
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (err.name === MONGOOSE_CAST_ERROR && err.kind === MONGOOSE_OBJECT_ID) {
       return ApiResponse.validationError(res, "Invalid tag Fromat provided");
@@ -90,7 +96,9 @@ const deleteTag = async (req, res) => {
 
     await tag.deleteOne();
 
-    ApiResponse.success(res, "Tag deleted successfully", {});
+    ApiResponse.success(res, "Tag deleted successfully", {
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     ApiResponse.error(res, "Error while deleting tag", error, 500);
   }

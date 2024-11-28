@@ -8,7 +8,6 @@ const {
   MONGOOSE_CAST_ERROR,
   MONGOOSE_OBJECT_ID,
 } = require("../constants/models.constants");
-const { get } = require("mongoose");
 
 const createAttribute = asyncHandler(async (req, res) => {
   try {
@@ -16,7 +15,10 @@ const createAttribute = asyncHandler(async (req, res) => {
     values = values.split(",");
     const attribute = await Attribute.create({ ...req.body, values });
 
-    ApiResponse.success(res, "Attribute created successfully", attribute);
+    ApiResponse.success(res, "Attribute created successfully", {
+      attribute,
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
       return ApiResponse.validationError(
@@ -74,6 +76,19 @@ const updateAnAttribute = asyncHandler(async (req, res) => {
   try {
     const { name, values } = req.body;
 
+    // Protection against NoSQL injection attack
+    if (name) {
+      if (typeof name !== "string") {
+        return ApiResponse.validationError(res, "Invalid input format 1");
+      }
+    }
+    const newValues = values.split(",");
+    if (newValues) {
+      if (!Array.isArray(newValues)) {
+        return ApiResponse.validationError(res, "Invalid input format 2");
+      }
+    }
+
     const attribute = await Attribute.findById(req.params.id);
 
     if (!attribute) {
@@ -84,10 +99,12 @@ const updateAnAttribute = asyncHandler(async (req, res) => {
       return ApiResponse.conflict(res, "Attribute already exists", 400);
     }
     const existingValues = attribute.values;
-    const newValues = values.split(",");
     const updatedAttribute = await Attribute.findByIdAndUpdate(
       attribute._id,
-      { name, values: [...new Set([...existingValues, ...newValues])] },
+      {
+        name: typeof name === "string" ? name : attribute.name, // name should only be string to protect against NoSQL Injection attack
+        values: [...new Set([...existingValues, ...newValues])],
+      },
       {
         new: true,
         runValidators: true,
@@ -97,7 +114,11 @@ const updateAnAttribute = asyncHandler(async (req, res) => {
     ApiResponse.success(
       res,
       "Attribute updated successfully",
-      updatedAttribute
+      {
+        attribute: updatedAttribute,
+        csrfToken: req.csrfToken(),
+      },
+      200
     );
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
@@ -134,7 +155,9 @@ const deleteAnAttribute = asyncHandler(async (req, res) => {
       return ApiResponse.notFound(res, "Attribute not found", 404);
     }
     await Attribute.findByIdAndDelete(id);
-    ApiResponse.success(res, "Attribute deleted successfully");
+    ApiResponse.success(res, "Attribute deleted successfully", {
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&

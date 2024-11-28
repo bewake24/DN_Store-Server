@@ -15,14 +15,16 @@
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csurf": "^1.10.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "fs": "^0.0.1-security",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "multer": "^1.4.5-lts.1",
-    "path": "^0.12.7",
     "slugify": "^1.6.6",
     "uuid": "^10.0.0"
   }

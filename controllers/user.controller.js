@@ -11,6 +11,8 @@ const {
   MONGOOSE_DUPLICATE_KEY,
 } = require("../constants/models.constants");
 const invalidFieldMessage = require("../utils/invalidFieldMessage");
+const { validateUsername } = require("../utils/inputValidation/validators");
+const UPLOAD_ROOT = path.resolve(__dirname, "..", "public", "uploads");
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -59,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     ApiResponse.success(
       res,
       "User added successfully",
-      rolesObjectToArray(createdUser),
+      { user: rolesObjectToArray(createdUser), csrfToken: req.csrfToken() },
       201
     );
   } catch (err) {
@@ -84,7 +86,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  // Get data vaidated data from frontend
   let { usernameOrEmail, password } = req.body;
 
   // Find user
@@ -122,17 +123,22 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return ApiResponse.success(
     res,
+    "User logged In Successfully",
     {
       user: rolesObjectToArray(loggedInUser),
       accessToken,
       refreshToken,
+      csrfToken: req.csrfToken(),
     },
-    "User logged In Successfully",
     200
   );
 });
 
 const logout = asyncHandler(async (req, res) => {
+  if (!req.user?._id) {
+    ApiResponse.notFound(res, "User not loggedin");
+  }
+
   // Remove remove user credentials from Db
   await User.findByIdAndUpdate(
     req.user._id,
@@ -156,7 +162,12 @@ const logout = asyncHandler(async (req, res) => {
 
   //Send response back
 
-  ApiResponse.success(res, "User logged out successfully", {}, 200);
+  ApiResponse.success(
+    res,
+    "User logged out successfully",
+    { csrfToken: req.csrfToken() },
+    200
+  );
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -199,11 +210,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     ApiResponse.success(
       res,
+      "New Tokens generated succesfully",
       {
         accessToken,
         refreshToken: newRefreshToken,
+        csrfToken: req.csrfToken(),
       },
-      "New Tokens generated succesfully",
       200
     );
   } catch (error) {
@@ -236,8 +248,8 @@ const updateUserInfo = asyncHandler(async (req, res) => {
     console.log("User updated successfully");
     ApiResponse.success(
       res,
-      rolesObjectToArray(updatedUser),
       "User updated successfully",
+      { user: rolesObjectToArray(updatedUser), csrfToken: req.csrfToken() },
       200
     );
   } catch (err) {
@@ -268,6 +280,16 @@ const updateAvatar = asyncHandler(async (req, res) => {
     ApiResponse.notFound(res, "User not loggedin or found");
   }
 
+  const validUsername = validateUsername(user.username);
+  if (!validUsername) {
+    ApiResponse.validationError(
+      res,
+      "This should not happen. Avatar update failed.",
+      { username: "Invalid username taken from cookies" },
+      400
+    );
+  }
+
   if (!req.file) {
     ApiResponse.validationError(
       res,
@@ -280,14 +302,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   //Find old avatar from DB
   let oldAvatarPath = "";
   if (user.avatar) {
-    oldAvatarPath = path.join(
-      __dirname,
-      "..",
-      "public",
-      "uploads",
-      user.username,
-      user.avatar
-    );
+    oldAvatarPath = path.resolve(UPLOAD_ROOT, user.avatar);
   }
 
   // Save new Avatar to DB
@@ -302,7 +317,12 @@ const updateAvatar = asyncHandler(async (req, res) => {
       }
     });
   }
-  ApiResponse.success(res, user, "User avatar updated successfully", 200);
+  ApiResponse.success(
+    res,
+    "User avatar updated successfully",
+    { user: rolesObjectToArray(user), csrfToken: req.csrfToken() },
+    200
+  );
 });
 
 const updateUsername = asyncHandler(async (req, res) => {
@@ -332,31 +352,11 @@ const updateUsername = asyncHandler(async (req, res) => {
       runValidators: true, // Run validation on update
     }
   ).lean();
-  console.log("User updated successfully");
-
-  // Rename folder for user according to the new username
-  const oldPath = path.join(__dirname, "..", "public", "uploads", oldUsername);
-  console.log(oldPath);
-  const newPath = path.join(
-    __dirname,
-    "..",
-    "public",
-    "uploads",
-    incomingUsername
-  );
-
-  fs.rename(oldPath, newPath, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Successfully renamed the directory.");
-    }
-  });
 
   ApiResponse.success(
     res,
     "User updated successfully",
-    rolesObjectToArray(user),
+    { user: rolesObjectToArray(user), csrfToken: req.csrfToken() },
     200
   );
 });
@@ -400,5 +400,3 @@ module.exports = {
   getAllUsers,
   getUsersByRole,
 };
-
-// Is it necessary to check for allowed updates while updating user?

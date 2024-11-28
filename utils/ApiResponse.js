@@ -47,6 +47,13 @@ class ApiResponse {
     });
   }
 
+  static tooManyRequests(res, message = "Too many requests", statusCode = 429) {
+    return res.status(statusCode).json({
+      status: "fail",
+      message,
+    });
+  }
+
   static error(res, message, statusCode = 500, error = null) {
     return res.status(statusCode).json({
       status: "error",

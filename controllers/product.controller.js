@@ -77,7 +77,8 @@ const addAProduct = asyncHandler(async (req, res) => {
     ApiResponse.success(
       res,
       "Product created successfully, Now add variations and prices for it",
-      product
+      { product, csrfToken: req.csrfToken() },
+      201
     );
   } catch (error) {
     if (error.name === MONGOOSE_VALIDATION_ERROR) {
@@ -177,7 +178,10 @@ const updateAProduct = asyncHandler(async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    ApiResponse.success(res, "Product updated successfully", updatedProduct);
+    ApiResponse.success(res, "Product updated successfully", {
+      product: updatedProduct,
+      csrfToken: req.csrfToken(),
+    });
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
@@ -201,9 +205,18 @@ const updateProductThumbnail = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const thumbnail = req.file.filenane;
+    const thumbnail = req.file.filename;
 
-    const product = Product.findByIdAndUpdate(
+    if (typeof thumbnail !== "string") {
+      return ApiResponse.validationError(
+        res,
+        "Invalid input data of thumbnail",
+        {},
+        400
+      );
+    }
+
+    const product = await Product.findByIdAndUpdate(
       id,
       { thumbnail },
       { new: true, runValidators: true }
@@ -213,13 +226,18 @@ const updateProductThumbnail = asyncHandler(async (req, res) => {
       return ApiResponse.notFound(res, "Product not found");
     }
 
-    ApiResponse.success(res, "Thumbnail Updated SUccessfully", product, 201);
+    ApiResponse.success(
+      res,
+      "Thumbnail Updated Successfully",
+      { product, csrfToken: req.csrfToken() },
+      201
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
       error.kind === MONGOOSE_OBJECT_ID
     ) {
-      ApiResponse.validationError(
+      return ApiResponse.validationError(
         res,
         "Thummbnail Update Failed",
         { id: "Invalid productId provided" },
@@ -234,9 +252,9 @@ const updateProductGallery = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const gallery = req.files.gallery.map((file) => file.filename);
+    const gallery = req.files.map((file) => file.filename);
 
-    const product = Product.findByIdAndUpdate(
+    const product = await Product.findByIdAndUpdate(
       id,
       { gallery },
       { new: true, runValidators: true }
@@ -246,13 +264,18 @@ const updateProductGallery = asyncHandler(async (req, res) => {
       return ApiResponse.notFound(res, "Product not found");
     }
 
-    ApiResponse.success(res, "Gallery. Updated SUccessfully", product, 201);
+    ApiResponse.success(
+      res,
+      "Gallery. Updated SUccessfully",
+      { product, csrfToken: req.csrfToken() },
+      201
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
       error.kind === MONGOOSE_OBJECT_ID
     ) {
-      ApiResponse.validationError(
+      return ApiResponse.validationError(
         res,
         "Gallery Update Failed",
         { id: "Invalid productId provided" },
@@ -270,16 +293,21 @@ const deleteAProduct = asyncHandler(async (req, res) => {
     const product = await Product.findByIdAndDelete(id);
 
     if (!product) {
-      ApiResponse.notFound(res, "Product not found");
+      return ApiResponse.notFound(res, "Product not found");
     }
 
-    ApiResponse.success(res, "Product deleted successfully", {}, 201);
+    ApiResponse.success(
+      res,
+      "Product deleted successfully",
+      { csrfToken: req.csrfToken() },
+      201
+    );
   } catch (error) {
     if (
       error.name === MONGOOSE_CAST_ERROR &&
       error.kind === MONGOOSE_OBJECT_ID
     ) {
-      ApiResponse.validationError(
+      return ApiResponse.validationError(
         res,
         "Product deletion failed",
         { id: "Invalid productId provided" },

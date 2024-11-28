@@ -1,5 +1,5 @@
 const User = require("../model/user.model");
-const apiXRes = require("../utils/ApiResponse");
+const ApiResponse = require("../utils/ApiResponse");
 const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 
@@ -10,7 +10,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       req.header("Authorisation")?.replace("Bearer ", ""); // req.header for requests which came from mobile application
 
     if (!token) {
-      apiXRes.unauthorized(
+      return ApiResponse.unauthorized(
         res,
         "Unauthorised request make sure you are logged in and  you have proper access rights"
       );
@@ -23,14 +23,14 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     );
 
     if (!user) {
-      apiXRes.notFound(res, "Invalid access token");
+      return ApiResponse.notFound(res, "Invalid access token");
     }
 
     req.user = user;
 
     next();
   } catch (error) {
-    apiXRes.unauthorized(res, error?.message || "Invalid access token");
+    ApiResponse.unauthorized(res, error?.message || "Invalid access token");
   }
 });
 
