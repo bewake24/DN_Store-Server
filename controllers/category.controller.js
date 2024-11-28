@@ -122,14 +122,16 @@ const updateCategory = asyncHandler(async (req, res) => {
         });
       });
     }
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (slug) updateFields.slug = slug;
+    if (thumbnail) updateFields.thumbnail = thumbnail;
+    if (isActive) updateFields.isActive = isProductActive;
 
     const updatedCategory = await Category.findByIdAndUpdate(
       category._id,
       {
-        name,
-        slug,
-        thumbnail,
-        isActive,
+        $set: updateFields,
       },
       { new: true, runValidators: true }
     );

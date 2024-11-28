@@ -12,6 +12,7 @@ const connectDB = require("./config/dbConn");
 const restrictDirectoryAccess = require("./middleware/uploads.middleware");
 const expressSession = require("./middleware/espressSession.middleware");
 const csrfProtection = require("./middleware/csrf.middleware");
+const limiter = require("./middleware/rateLimit.middleware");
 
 const PORT = process.env.PORT || 3000;
 
@@ -68,7 +69,7 @@ app.use("/api/v1/product", require("./routes/product.route"));
 app.use("/api/v1/variation", require("./routes/variation.route"));
 app.use("/api/v1/cart", require("./routes/cart.route"));
 
-app.all("*", (req, res) => {
+app.all("*", limiter("15m", 100), (req, res) => {
   // res.redirect("/404.html")
 
   if (req.accepts("html")) {

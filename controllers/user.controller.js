@@ -275,7 +275,7 @@ const updateUserInfo = asyncHandler(async (req, res) => {
 
 const updateAvatar = asyncHandler(async (req, res) => {
   // Get user from cookies
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("_id username");
   if (!user) {
     ApiResponse.notFound(res, "User not loggedin or found");
   }
@@ -303,11 +303,22 @@ const updateAvatar = asyncHandler(async (req, res) => {
   let oldAvatarPath = "";
   if (user.avatar) {
     oldAvatarPath = path.resolve(UPLOAD_ROOT, user.avatar);
+    if (!oldAvatarPath.startsWith(UPLOAD_ROOT)) {
+      ApiResponse.validationError(
+        res,
+        "Invalid input",
+        { avatar: "Invalid avatar path" },
+        400
+      );
+      return;
+    }
   }
 
   // Save new Avatar to DB
   user.avatar = req.file?.filename;
   await user.save();
+
+  const updatedUser = await User.findById(req.user._id).lean();
 
   // Delete old avatar from server
   if (fs.existsSync(oldAvatarPath)) {
@@ -320,7 +331,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   ApiResponse.success(
     res,
     "User avatar updated successfully",
-    { user: rolesObjectToArray(user), csrfToken: req.csrfToken() },
+    { user: rolesObjectToArray(updatedUser), csrfToken: req.csrfToken() },
     200
   );
 });
@@ -361,7 +372,7 @@ const updateUsername = asyncHandler(async (req, res) => {
   );
 });
 
-const getAllUsers = asyncHandler(async (req, res) => {
+const getAllUsers = asyncHandler(async (_, res) => {
   let users = await User.find().select("roles username").lean();
   users = rolesObjectToArray(users);
   ApiResponse.success(res, "All users fetched", users, 200);

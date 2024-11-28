@@ -128,11 +128,15 @@ const updateAnAddress = asyncHandler(async (req, res) => {
         updateData[key] = req.body[key];
       }
     }
-    const address = await Address.findByIdAndUpdate(addressId, updateData, {
-      //Don't update data from req.body directly it may lead to NoSQL Injection Attack
-      new: true,
-      runValidators: true,
-    });
+    const address = await Address.findByIdAndUpdate(
+      addressId,
+      { $set: updateData },
+      {
+        //Don't update data from req.body directly it may lead to NoSQL Injection Attack
+        new: true,
+        runValidators: true,
+      }
+    );
     console.log("Address updated successfully");
 
     ApiResponse.success(
